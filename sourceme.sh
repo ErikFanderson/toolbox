@@ -16,6 +16,5 @@ else
     export MYPYPATH=$PWD/pyproject:$MYPYPATH
 fi
 
-# Set PYPROJECT_HOME variable
-export PYPROJECT_HOME=$PWD
-
+# Set TOOLBOX_HOME variable
+export TOOLBOX_HOME=$PWD

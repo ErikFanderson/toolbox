@@ -23,28 +23,33 @@ from project_manager import ProjectManager
 #import re
 #import yaml
 
+
 class PyProjectCLIDriver:
     """Command line driver for pyproject invocation"""
-
     def parse_args(self) -> argparse.Namespace:
         ''' Parse arguments for PyProjectCLIDriver CLI Driver'''
         parser = argparse.ArgumentParser(
-            description="Completes yaml decribed jobs using python described tools"
-        )
-        parser.add_argument('job', help='Specifies the job (*.yml) to be executed.')
+            description=
+            "Completes yaml decribed jobs using python described tools")
+        parser.add_argument('job',
+                            help='Specifies the job (*.yml) to be executed.')
         parser.add_argument(
-            '-b', '--build-dir',
+            '-b',
+            '--build-dir',
             default='build',
-            help='Specifies the build/outputs directory for all jobs. Default: build/'
+            help=
+            'Specifies the build/outputs directory for all jobs. Default: build/'
         )
         parser.add_argument(
-            '-ln', '--symlink',
+            '-ln',
+            '--symlink',
             required=False,
-            help='Optionally define a symlink build directory location.'
-        )
+            help='Optionally define a symlink build directory location.')
         parser.add_argument(
-            '-c', '--config',
-            help='Pass a configuration file (*.yml) to be included in global namespace.'
+            '-c',
+            '--config',
+            help=
+            'Pass a configuration file (*.yml) to be included in global namespace.'
         )
         return parser.parse_args()
 
@@ -52,6 +57,7 @@ class PyProjectCLIDriver:
         """Creates project manager and launches job"""
         args = self.parse_args()
         pm = ProjectManager(vars(args))
+
 
 if __name__ == '__main__':
     PyProjectCLIDriver().main()

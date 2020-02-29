@@ -1,4 +1,4 @@
-# Author: Erik Anderson 
+# Author: Erik Anderson
 # Date Created: 02/27/2020
 
 default: test
@@ -15,6 +15,10 @@ format:
 type:
 	mypy pyproject
 
-# Runs all tests in tests directory 
+# Runs all tests in tests directory
 test:
 	pytest
+
+# Runs ctags 
+tags:
+	ctags -R .

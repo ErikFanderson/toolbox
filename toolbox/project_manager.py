@@ -20,13 +20,15 @@ from dataclasses import dataclass
 # and spit out at the end of the job
 # TODO Get resolution function working for reading in configs
 
+
 class LogLevel(Enum):
     """Same logging levels used by python logging module"""
-    DEBUG = 10 
+    DEBUG = 10
     INFO = 20
-    WARNING = 30 
+    WARNING = 30
     ERROR = 40
-    CRITICAL = 50 
+    CRITICAL = 50
+
 
 @dataclass(frozen=True)
 class LoggerDb:
@@ -36,16 +38,16 @@ class LoggerDb:
     level: LogLevel
     out_fname: Optional[str]
 
+
 class Logger:
     """Configurable logger for ProjectManager"""
-
-    def __init__(self,p: LoggerDb) -> None:
+    def __init__(self, p: LoggerDb) -> None:
         """Initializes a logger using db values from project manager"""
-        self._logger = logging.getLogger() 
+        self._logger = logging.getLogger()
+
 
 class ProjectManager:
     """Coordinates the running of tools and jobs"""
-
     def __init__(self, args: dict) -> None:
         """Inializes project manager with global namespace from args list"""
         self._db = self.generate_global_database(args)
@@ -55,12 +57,12 @@ class ProjectManager:
         try:
             return self._db[field]
         except KeyError:
-            pass # Use logger to issue warning
+            pass  # Use logger to issue warning
 
-    def generate_global_database(self,args: dict) -> dict:
+    def generate_global_database(self, args: dict) -> dict:
         """Generates global database from config files and args"""
         # Read in and combine all yml config and args
-        #db["args"] = 
+        #db["args"] =
         #self._db["args"] = self.args
         #self.
         #self.add_args()
@@ -68,8 +70,7 @@ class ProjectManager:
         #print(self._db)
 
     def combine_configs(configs: List[dict]):
-        pass 
+        pass
 
     def resolve_config(self):
-        pass 
-
+        pass
