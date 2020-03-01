@@ -15,6 +15,23 @@ from toolbox.toolbox import ToolBox, ToolBoxParams
 from toolbox.path_helper import PathHelper
 from toolbox.logger import LogLevel, LoggerParams
 
+def test_dot_dict_expand():
+    """Tests the very important expand function for my dot_dict"""
+    pass
+    #my_dict = DotDict({"test1":{"test2": {"test3.test8":  69,"test4": "fuck"}}})
+    #print(my_dict.flatten())
+    #my_dict = DotDict({"test1":{}})
+    #print(my_dict.flatten())
+    #my_dict = DotDict({"test1.test2":10})
+    #print(my_dict.flatten())
+
+def test_circular_resolution():
+    """Test to make sure that circular reference is handled"""
+    pass
+
+def test_invalid_config():
+    """Test to make sure that invalid config files are properly ignored"""
+    pass
 
 def test_path_helper():
     # Single checks

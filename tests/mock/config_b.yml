@@ -1,0 +1,3 @@
+test: ${tools.ToolA.property1}
+tools.ToolB.property0: "hello"
+tools.ToolB.property1: ${test}

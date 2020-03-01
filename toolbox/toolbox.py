@@ -14,20 +14,23 @@ import os, sys
 from pathlib import Path
 from datetime import datetime
 import shutil
+import re
+import copy
 
 # Imports - 3rd party packages
+import yaml
 import yamale
 from yamale.schema.schema import Schema
 
 # Imports - local source
 from .logger import Logger, LogLevel, LoggerParams
 from .path_helper import PathHelper
+from .dot_dict import DotDict
 
 # TODO Use make_dataclass after reading all keys to dynamically create inputs database
 # TODO There will be a separate outputs database that is generated and merged with inputs
 # and spit out at the end of the job
 # TODO Get resolution function working for reading in configs
-
 
 @dataclass(frozen=True)
 class ToolBoxParams:
@@ -118,19 +121,80 @@ class ToolBox:
 
     def generate_global_database(self) -> dict:
         """Generates global database from config files and args"""
+        db = DotDict({'tools': {}})
+        descriptions = {'tools': {}}
+        schema = {'tools': {}}
+        # Fill db, descriptions, and schema w/ tools.yml
         tool_paths = self.validate_tools_file(self._args.tools_file)
         tool_configs = self.validate_tools(tool_paths)
-        # Iterate through tools
-        # Load default tool config
-        #
-        # Iterate through config files
-        # Overwrites any default settings
-        # combine_configs
-        # combine_schemas
-        # check_configs
-        # return make_dataclass
-        #configs = args['config']
-        #self.combine_configs()
+        for tool in tool_configs:
+            db['tools'][tool['name']] = {}
+            descriptions['tools'][tool['name']] = {}
+            schema['tools'][tool['name']] = {}
+            for property,values in tool['properties'].items():
+                db['tools'][tool['name']][property] = values['default']
+                descriptions['tools'][tool['name']][property] = values['description']
+                schema['tools'][tool['name']][property] = values['schema']
+        db.set_via_dot_string("test",33)
+        # Fill database with config information
+        config_db = self.resolve(self._args.config)
+        ###configs = self.validate_configs()
+        #return db
+        ## Iterate through tools
+        ## Load default tool config
+        ##
+        ## Iterate through config files
+        ## Overwrites any default settings
+        ## combine_configs
+        ## combine_schemas
+        ## check_configs
+        ## return make_dataclass
+        ##configs = args['config']
+        ##self.combine_configs()
+
+    def resolve(self,configs: List[str]) -> dict:
+        """Checks configs are valid files and resolves any ${}"""
+        config_dict = DotDict()
+        checked_configs = self.check_files(configs)
+        for config in checked_configs:
+            with open(config,'r') as fp:
+                data = yaml.load(fp,Loader=yaml.SafeLoader)
+                for k,p in data.items():
+                    config_dict.set_via_dot_string(k,p)
+                #config_dict.update(data)
+                #config_dict.expand_dot_keys()
+        # Resolve references
+        #for config,value in config_dict.items():
+        #    config_dict[config] = self.resolve_key(config,config,config_dict)
+        return config_dict
+
+    def resolve_key(self,key: str,og_key: str, config_dict: dict) -> Any:
+        """Issues first resolve key recursive. Need separate for
+        circular reference issue
+        """
+        key_ref = re.compile('\${(.*)}')
+        config = config_dict[key]
+        if isinstance(config_dict[key],str):
+            for ref in key_ref.findall(config_dict[key]):
+                self.access_via_string(ref,config_dict)
+            #m = key_ref.match(str(config_dict[key]))
+            #if m:
+            #    #key_ref.sub(resolve_key_recursive',)
+            #    print((m.groups))
+        # TODO implement me
+        elif isinstance(config_dict[key],list):
+            pass
+        # TODO implement me
+        elif isinstance(config_dict[key],dict):
+            pass
+        return config
+        #try:
+        #    re.sub('${([.]*)}',config_dict[key])
+        #except KeyError:
+        #    self.exit('Key "{key}" does not exist.')
+        #resolve_key_recursive()
+
+    #def resolve_key_recursive
 
     def validate_tools_file(self, fname: str) -> List[Path]:
         """Validates the tools file
@@ -172,21 +236,6 @@ class ToolBox:
             str(tool_yml), str(self._home_dir / 'toolbox/schemas/tool.yml'))
         # Exit if tool cannot validate
         return yml
-
-    def combine_configs(self, configs: List[dict]) -> str:
-        """Generates global config string/namespace"""
-        pass
-
-    def combine_schemas(self, configs: List[dict]) -> str:
-        """Generates global schema file/namespace"""
-        pass
-
-    def check_configs(self, configs: List[dict]) -> None:
-        """Checks global namespace against global schemaspace"""
-        pass
-
-    def resolve_config(self):
-        pass
 
     def execute(self):
         shutil.copy(self._args.log_params.out_fname,

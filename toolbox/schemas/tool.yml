@@ -6,3 +6,4 @@ schema_includes: map(required=False)
 property:
   default: anything()
   description: str()
+  schema: str()
