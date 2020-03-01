@@ -11,9 +11,9 @@ fi
 # Set MYPYPATH accordingly
 if [ -z "$MYPYPATH" ]
 then
-    export MYPYPATH=$PWD/pyproject
+    export MYPYPATH=$PWD/toolbox
 else
-    export MYPYPATH=$PWD/pyproject:$MYPYPATH
+    export MYPYPATH=$PWD/toolbox:$MYPYPATH
 fi
 
 # Set TOOLBOX_HOME variable

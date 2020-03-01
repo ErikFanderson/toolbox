@@ -1,0 +1,10 @@
+name: ToolA
+properties:
+  property0:
+    description: "Here is a description of not required property0"
+    default: "default"
+    schema: "int()"
+  property1:
+    description: "Here is a description of required property1"
+    default: null
+    schema: "str()"

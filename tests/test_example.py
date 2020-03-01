@@ -11,8 +11,10 @@ from pathlib import Path
 # Imports - 3rd party packages
 
 # Imports - local source
-import toolbox
+from toolbox.toolbox import ToolBox, ToolBoxParams
 from toolbox.path_helper import PathHelper
+from toolbox.logger import LogLevel, LoggerParams
+
 
 def test_path_helper():
     # Single checks
@@ -42,3 +44,14 @@ def test_path_helper():
     d = PathHelper.check_dirs([str(f[0].parent),str(f[1].parent)])
     print(f"Directories [True]: {d}")
     assert(d is not None and len(d) == 2)
+
+def test_tool_validate():
+    mock_dir = Path(__file__).resolve().parent / 'mock'
+    args = ToolBoxParams(f'{mock_dir}/tools.yml',
+                        build_dir='test_build',
+                        symlink=None,
+                        config=[],
+                        interactive=False,
+                        log_params=LoggerParams(LogLevel.DEBUG),
+                        job='test_job')
+    tb = ToolBox(args)

@@ -1,0 +1,7 @@
+# Specif
+name: str()
+properties: map(include('property'))
+---
+property:
+  default: any(str(),int(),map(),null())
+  description: str()

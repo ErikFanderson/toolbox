@@ -12,8 +12,8 @@ from dataclasses import dataclass
 # Imports - 3rd party packages
 
 # Imports - local source
-from toolbox import ToolBox, ToolBoxParams
-from logger import LogLevel, LoggerParams
+from .toolbox import ToolBox, ToolBoxParams
+from .logger import LogLevel, LoggerParams
 
 
 class ToolBoxCLIDriver:
@@ -71,7 +71,7 @@ class ToolBoxCLIDriver:
         """Creates project manager and launches job"""
         args = self.parse_args()
         logger_params = LoggerParams(level=LogLevel[(args.log_level).upper()],
-                                     out_fname=args.output+'.log')
+                                     out_fname=args.output + '.log')
         tb_args = ToolBoxParams(args.tool_file, args.build_dir, args.symlink,
                                 args.config, args.interactive, logger_params,
                                 args.job)

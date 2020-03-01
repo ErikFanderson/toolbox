@@ -13,6 +13,7 @@ import sys
 
 # Imports - 3rd party packages
 import yaml
+import yamale
 import jsonschema
 
 # Imports - local source
@@ -23,7 +24,6 @@ class PathHelper:
     """Saves home directory and allows for easy checking of files
     Relies heavily on Pathlib
     """
-
     @staticmethod
     def unlink_missing_ok(dirname: Path) -> None:
         ''' Unlinks directory if it exists '''
@@ -47,6 +47,17 @@ class PathHelper:
             jsonschema.validate(instance=loaded_yaml, schema=loaded_schema)
             return loaded_yaml
         except jsonschema.exceptions.ValidationError as err:
+            return f'{err}\nYAML file "{yaml_fname}" does not conform to schema "{schema_fname}"'
+
+    @staticmethod
+    def yamale_validate(yaml_fname,schema_fname) -> Union[str, dict]:
+        """Uses yamale to calidate yaml file"""
+        schema = yamale.make_schema(schema_fname)
+        data = yamale.make_data(yaml_fname)
+        try:
+            yamale.validate(schema,data)
+            return data[0][0]
+        except ValueError as err:
             return f'{err}\nYAML file "{yaml_fname}" does not conform to schema "{schema_fname}"'
 
     @staticmethod
