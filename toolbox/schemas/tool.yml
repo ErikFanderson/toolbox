@@ -1,7 +1,8 @@
 # Specif
 name: str()
 properties: map(include('property'))
+schema_includes: map(required=False)
 ---
 property:
-  default: any(str(),int(),map(),null())
+  default: anything()
   description: str()

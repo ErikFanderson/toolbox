@@ -25,7 +25,7 @@ class ToolBoxCLIDriver:
                             help='Specifies job (*.yml) to be executed.')
         parser.add_argument(
             '-t',
-            '--tool-file',
+            '--tools-file',
             default='tools.yml',
             help='Specifies the tool file to be used. Default: tools.yml')
         parser.add_argument(
@@ -72,7 +72,7 @@ class ToolBoxCLIDriver:
         args = self.parse_args()
         logger_params = LoggerParams(level=LogLevel[(args.log_level).upper()],
                                      out_fname=args.output + '.log')
-        tb_args = ToolBoxParams(args.tool_file, args.build_dir, args.symlink,
+        tb_args = ToolBoxParams(args.tools_file, args.build_dir, args.symlink,
                                 args.config, args.interactive, logger_params,
                                 args.job)
         tb = ToolBox(tb_args)

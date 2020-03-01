@@ -14,16 +14,28 @@ import sys
 # Imports - 3rd party packages
 import yaml
 import yamale
+from yamale.validators import DefaultValidators, Validator
 import jsonschema
 
 # Imports - local source
 #from logger import LogLevel, Logger
 
 
+class Anything(Validator):
+    """ Custom anything validator """
+    tag = 'anything'
+
+    def _is_valid(self, value):
+        return True
+
+
 class PathHelper:
     """Saves home directory and allows for easy checking of files
     Relies heavily on Pathlib
     """
+    validators = DefaultValidators.copy()
+    validators[Anything.tag] = Anything
+
     @staticmethod
     def unlink_missing_ok(dirname: Path) -> None:
         ''' Unlinks directory if it exists '''
@@ -32,33 +44,17 @@ class PathHelper:
         except FileNotFoundError:
             pass
 
-    @staticmethod
-    def validate_yaml(yaml_fname: str, schema_fname: str) -> Union[str, dict]:
-        '''loads and validates yaml using schema fname
-        :param yaml_fname Yaml filename for loading
-        :param schema_fname JSON or YML filename for schema checking
-        :return either loaded yaml dict or error message
-        '''
-        with open(schema_fname, 'r') as fp:
-            loaded_schema = json.load(fp)
-        with open(yaml_fname, 'r') as fp:
-            loaded_yaml = yaml.load(fp, Loader=yaml.SafeLoader)
-        try:
-            jsonschema.validate(instance=loaded_yaml, schema=loaded_schema)
-            return loaded_yaml
-        except jsonschema.exceptions.ValidationError as err:
-            return f'{err}\nYAML file "{yaml_fname}" does not conform to schema "{schema_fname}"'
-
-    @staticmethod
-    def yamale_validate(yaml_fname,schema_fname) -> Union[str, dict]:
+    @classmethod
+    def yamale_validate(cls, yaml_fname: str,
+                        schema_fname: str) -> Union[str, dict]:
         """Uses yamale to calidate yaml file"""
-        schema = yamale.make_schema(schema_fname)
+        schema = yamale.make_schema(schema_fname, validators=cls.validators)
         data = yamale.make_data(yaml_fname)
         try:
-            yamale.validate(schema,data)
+            yamale.validate(schema, data)
             return data[0][0]
         except ValueError as err:
-            return f'{err}\nYAML file "{yaml_fname}" does not conform to schema "{schema_fname}"'
+            return str(err)
 
     @staticmethod
     def get_rel_path(path):

@@ -32,7 +32,7 @@ from .path_helper import PathHelper
 @dataclass(frozen=True)
 class ToolBoxParams:
     """All command line args to create ToolBox"""
-    tool_file: str
+    tools_file: str
     build_dir: str
     symlink: Optional[str]
     config: List[str]
@@ -82,10 +82,10 @@ class ToolBox:
         checked_dirs = [self.check_dir(directory) for directory in dirs]
         return [directory for directory in checked_dirs if directory]
 
-    def validate_yaml(self,yaml_fname: str,schema_fname: str):
+    def validate_yaml(self, yaml_fname: str, schema_fname: str):
         """Checks to see if ooutput is an error message and exits if it is"""
-        config = PathHelper.yamale_validate(yaml_fname,schema_fname)
-        if isinstance(config,str):
+        config = PathHelper.yamale_validate(yaml_fname, schema_fname)
+        if isinstance(config, str):
             self.exit(config)
         return config
 
@@ -118,7 +118,7 @@ class ToolBox:
 
     def generate_global_database(self) -> dict:
         """Generates global database from config files and args"""
-        tool_paths = self.validate_tool_file(self._args.tool_file)
+        tool_paths = self.validate_tools_file(self._args.tools_file)
         tool_configs = self.validate_tools(tool_paths)
         # Iterate through tools
         # Load default tool config
@@ -132,9 +132,9 @@ class ToolBox:
         #configs = args['config']
         #self.combine_configs()
 
-    def validate_tool_file(self, fname: str) -> List[Path]:
-        """Validates the tool file
-        :param fname Filename of the tool file
+    def validate_tools_file(self, fname: str) -> List[Path]:
+        """Validates the tools file
+        :param fname Filename of the tools file
         :return List of Paths to tools
         """
         # Load tools file (may include globals)
@@ -151,28 +151,27 @@ class ToolBox:
             self.exit(f'No valid tools found in "{tool_file}"')
         return tool_paths
 
-    def validate_tools(self,tool_paths: List[Path]) -> dict:
+    def validate_tools(self, tool_paths: List[Path]) -> dict:
         """Iterateively builds tool config.
         All tools must validate before proceeding
         """
-        tool_config = [self.validate_tool(tool_path) for tool_path in tool_paths]
+        tool_config = [
+            self.validate_tool(tool_path) for tool_path in tool_paths
+        ]
         return tool_config
 
-    def validate_tool(self, tool_path: Path) -> Tuple[dict,dict]:
+    def validate_tool(self, tool_path: Path) -> Tuple[dict, dict]:
         """Individually validates a tool"""
         # Check and validate tool.yml
         tool_yml = self.check_file(tool_path / 'tool.yml')
         if tool_yml is None:
-            self.exit(f'Tool at path "{tool_path}" does not contain required tool.yml file.')
-        yml = self.validate_yaml(str(tool_yml),str(self._home_dir/'toolbox/schemas/tool.yml'))
-        # Check for schema.json
-        tool_schema = self.check_file(tool_path / 'schema.yml')
-        if tool_schema is None:
-            self.exit(f'Tool at path "{tool_path}" does not contain required schema.json file.')
-        schema = yamale.make_data(str(tool_schema))
-        schema = schema[0][0] if schema else {}
+            self.exit(
+                f'Tool at path "{tool_path}" does not contain required tool.yml file.'
+            )
+        yml = self.validate_yaml(
+            str(tool_yml), str(self._home_dir / 'toolbox/schemas/tool.yml'))
         # Exit if tool cannot validate
-        return (yml,schema)
+        return yml
 
     def combine_configs(self, configs: List[dict]) -> str:
         """Generates global config string/namespace"""
