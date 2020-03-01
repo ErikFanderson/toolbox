@@ -14,6 +14,31 @@ from pathlib import Path
 from toolbox.toolbox import ToolBox, ToolBoxParams
 from toolbox.path_helper import PathHelper
 from toolbox.logger import LogLevel, LoggerParams
+from toolbox.dot_dict import DotDict
+
+def test_dot_dict():
+    # Flatten first
+    my_dict = DotDict({
+        "zero": {"one": {"two": {"three": 4}}},
+        "zero.one.two": 0,
+        "zero.one.four": {"five.six": "test_str"}
+    })
+    flattened_dict = DotDict({
+        "zero.one.two.three": 4,
+        "zero.one.two": 0,
+        "zero.one.four.five.six": "test_str"
+    })
+    target_dict = DotDict({
+        "zero": {"one": {"two": 0, "four": {"five": {"six": "test_str"}}}},
+    })
+    my_dict.flatten()
+    assert(my_dict == flattened_dict)
+    # Dot expand second
+    my_dict.dot_expand()
+    print(my_dict)
+    assert(my_dict == target_dict)
+    assert(False)
+
 
 def test_dot_dict_expand():
     """Tests the very important expand function for my dot_dict"""

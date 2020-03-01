@@ -1,3 +1,4 @@
 tools.ToolA.property0: "hello"
-tools.ToolA:
-  property1: 39
+tools:
+  ToolA:
+    property1: 39

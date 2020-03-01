@@ -159,8 +159,9 @@ class ToolBox:
         for config in checked_configs:
             with open(config,'r') as fp:
                 data = yaml.load(fp,Loader=yaml.SafeLoader)
-                for k,p in data.items():
-                    config_dict.set_via_dot_string(k,p)
+                config_dict.update(data)
+        print("flattened dict: " + str(config_dict.flatten()))
+        #print(config_dict.expand())
                 #config_dict.update(data)
                 #config_dict.expand_dot_keys()
         # Resolve references
