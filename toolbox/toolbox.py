@@ -12,11 +12,12 @@ from enum import Enum
 from dataclasses import dataclass
 import os, sys
 from pathlib import Path
+from datetime import datetime
+import shutil
 
 # Imports - 3rd party packages
 
 # Imports - local source
-#from cli_driver import CLIArgs
 from logger import Logger, LogLevel, LoggerParams
 from path_helper import PathHelper
 
@@ -34,22 +35,25 @@ class ToolBoxParams:
     symlink: str
     config: List[str]
     interactive: bool
-    log_level: LogLevel
+    log_params: LoggerParams
+    job: str
 
 
 class ToolBox:
     """Coordinates the running of tools and jobs"""
     def __init__(self, args: ToolBoxParams) -> None:
         """Inializes project manager with global namespace from args list"""
-        # Set private and public members
-        self._logger = Logger(LoggerParams(level=args.log_level))
+        self._args = args
+        # Make build directory and initialize logger
+        self._build_dir = self.make_build_dir()
+        self._logger = Logger(args.log_params)
         self.log = self._logger.log
         # Ensure that home directory is set
         self._home_dir = PathHelper.check_dir(os.getenv('TOOLBOX_HOME'))
         if self._home_dir is None:
             self.exit('TOOLBOX_HOME variable not set or incorrectly set.')
         # Populate Database
-        self._db = self.generate_global_database(args)
+        self._db = self.generate_global_database()
 
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
@@ -88,9 +92,22 @@ class ToolBox:
         except KeyError:
             pass  # Use logger to issue warning
 
-    def generate_global_database(self, args: ToolBoxParams) -> dict:
+    def make_build_dir(self):
+        """Make build directory and symlink"""
+        date_str = datetime.now().strftime("%m-%d-%Y-%H:%M:%S")
+        build_dir = Path(self._args.build_dir) / self._args.job / date_str
+        build_dir = build_dir.resolve()
+        build_dir.mkdir(parents=True,exist_ok=True)
+        PathHelper.unlink_missing_ok(build_dir.parent / 'current')
+        (build_dir.parent / 'current').symlink_to(build_dir,target_is_directory=True)
+        if self._args.symlink:
+            PathHelper.unlink_missing_ok(Path(self._args.symlink))
+            Path(self._args.symlink).symlink_to(build_dir.parents[1],target_is_directory=True)
+        return build_dir
+
+    def generate_global_database(self) -> dict:
         """Generates global database from config files and args"""
-        tool_paths = self.validate_tool_file(args.tool_file)
+        tool_paths = self.validate_tool_file(self._args.tool_file)
         # Iterate through tools
         # Load default tool config
         #
@@ -111,8 +128,7 @@ class ToolBox:
         # Load tools file (may include globals)
         tool_file = self.check_file(fname)
         if tool_file is None:
-            self.exit('Cannot find tool file "{args.tool_file}"')
-        test = self.check_file("toolboxma.json")
+            self.exit(f'Cannot find tool file "{fname}"')
         schema_file = self.check_file(
             str(self._home_dir / "toolbox/schema.json"))
         # Validate tool config
@@ -147,4 +163,5 @@ class ToolBox:
         pass
 
     def execute(self):
-        pass
+        shutil.copy(self._args.log_params.out_fname,
+                    str(self._build_dir / self._args.log_params.out_fname))

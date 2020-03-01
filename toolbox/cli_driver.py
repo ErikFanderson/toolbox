@@ -13,17 +13,7 @@ from dataclasses import dataclass
 
 # Imports - local source
 from toolbox import ToolBox, ToolBoxParams
-from logger import LogLevel
-
-#import os,sys
-#import argparse
-#from pathlib import Path
-#from sympy.parsing.sympy_parser import parse_expr
-#import copy
-#from pysilicon.file_gen import *
-#import math
-#import re
-#import yaml
+from logger import LogLevel, LoggerParams
 
 
 class ToolBoxCLIDriver:
@@ -70,15 +60,23 @@ class ToolBoxCLIDriver:
             choices=('notset', 'info', 'debug', 'warning', 'error',
                      'critical'),
             help='Specifies the global logging level. Default: info')
+        parser.add_argument(
+            '-o',
+            '--output',
+            default='toolbox',
+            help='Specifies the log filename. Default: toolbox.log')
         return parser.parse_args()
 
     def main(self) -> None:
         """Creates project manager and launches job"""
         args = self.parse_args()
+        logger_params = LoggerParams(level=LogLevel[(args.log_level).upper()],
+                                     out_fname=args.output+'.log')
         tb_args = ToolBoxParams(args.tool_file, args.build_dir, args.symlink,
-                                args.config, args.interactive,
-                                LogLevel[(args.log_level).upper()])
+                                args.config, args.interactive, logger_params,
+                                args.job)
         tb = ToolBox(tb_args)
+        tb.execute()
 
 
 if __name__ == '__main__':

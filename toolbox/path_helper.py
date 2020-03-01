@@ -23,6 +23,15 @@ class PathHelper:
     """Saves home directory and allows for easy checking of files
     Relies heavily on Pathlib
     """
+
+    @staticmethod
+    def unlink_missing_ok(dirname: Path) -> None:
+        ''' Unlinks directory if it exists '''
+        try:
+            (dirname).unlink()
+        except FileNotFoundError:
+            pass
+
     @staticmethod
     def validate_yaml(yaml_fname: str, schema_fname: str) -> Union[str, dict]:
         '''loads and validates yaml using schema fname
