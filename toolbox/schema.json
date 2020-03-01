@@ -1,0 +1,13 @@
+{
+"type": "object",
+"properties": {
+    "tools": {
+      "description": "List of directories containing tools.",
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    }
+},
+"required": ["tools"],
+"additionalProperties": true
+}

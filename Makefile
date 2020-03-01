@@ -5,15 +5,15 @@ default: test
 
 # Lints pyproject directory recursively
 lint:
-	pylint pyproject
+	pylint toolbox 
 
 # Formats pyproject directory recursively
 format:
-	yapf -r pyproject
+	yapf -i -r toolbox 
 
 # Type checks pyproject directory recursively
 type:
-	mypy pyproject
+	mypy toolbox 
 
 # Runs all tests in tests directory
 test:
@@ -22,3 +22,5 @@ test:
 # Runs ctags 
 tags:
 	ctags -R .
+
+.PHONY: lint format type test
