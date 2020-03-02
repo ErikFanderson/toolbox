@@ -14,9 +14,14 @@ import sys
 
 # Imports - local source
 
-class DotDict(dict):
 
-    def set_via_dot_string(self, dot_str: str,value: Any) -> None:
+class DictError(Exception):
+    """For errors involving the custom DotDict class"""
+    pass
+
+
+class DotDict(dict):
+    def set_via_dot_string(self, dot_str: str, value: Any) -> bool:
         """Returns a modified dictionary accessed by a dot access_via_string
         Will unapologetically redefine values!
         :param dot_str Dot string such as key1.key2.key3
@@ -24,19 +29,18 @@ class DotDict(dict):
         """
         keys = dot_str.split('.')
         set_val = self
-        for i,k in enumerate(keys):
-            if not isinstance(set_val,dict):
-                set_val = {}
+        for i, k in enumerate(keys):
             try:
                 set_val = set_val[k]
             except KeyError:
-                #set_val[k] = {}
-                #set_val = set_val[k]
-                if len(keys) == (i+1):
+                if len(keys) == (i + 1):
                     set_val[k] = value
                 else:
                     set_val[k] = {}
                     set_val = set_val[k]
+            except TypeError:
+                raise DictError(
+                    "Illegal redefinition of global database field.")
 
     def get_via_dot_string(self, dot_str: str) -> Any:
         """Allows for accessing dictionary via dot methods"""
@@ -46,57 +50,47 @@ class DotDict(dict):
     def get_via_list(self, keys: List[str]) -> Any:
         """Allows for accessing dictionary via list of strings"""
         return_val = self
-        for i,k in enumerate(keys):
+        for i, k in enumerate(keys):
             return_val = return_val[k]
         return return_val
 
     @staticmethod
-    def flatten_recursive(db: dict,prefix: str = '',keys: list = []) -> Tuple[str,Any]:
+    def flatten_recursive(db: dict, prefix: str = '',
+                          keys: list = []) -> Tuple[str, Any]:
         """Returns first dot key value found"""
-        for key,value in db.items():
+        for key, value in db.items():
             new_prefix = prefix + '.' + key if prefix else key
-            if isinstance(value,dict) and value != {}:
-                return DotDict.flatten_recursive(value,new_prefix,keys + [key])
+            if isinstance(value, dict) and value != {}:
+                return DotDict.flatten_recursive(value, new_prefix,
+                                                 keys + [key])
             else:
-                return (new_prefix,value,keys + [key])
+                return (new_prefix, value, keys + [key])
 
-    def delete_key(self,keys: List[str]) -> dict:
+    def delete_key(self, keys: List[str]) -> dict:
         """Iteratively deletes keys in dictionary using a list of keys"""
         if len(keys) > 1:
             for j in reversed(range(len(keys))):
-                del_dict =  self.get_via_list(keys[:j])
+                del_dict = self.get_via_list(keys[:j])
                 del_key = keys[j]
-                if j == len(keys)-1 or del_dict[del_key] == {}:
+                if j == len(keys) - 1 or del_dict[del_key] == {}:
                     del del_dict[del_key]
         elif len(keys) == 1:
             del self[keys[0]]
         return self
 
-    #def expand(self) -> Tuple[str,Any]:
-    #    new_dict = DotDict()
-    #    while self != {}:
-    #        flat_key, value, old_keys = DotDict.expand_recursive(self)
-    #        self = DotDict.delete_key(self,old_keys)
-    #        new_dict.set_via_dot_string(flat_key,value)
-    #    self.update(new_dict)
-    #    return self
-
-    #def expand_recursive(self,prefix: str = '',keys: list = []) -> Tuple[str,Any]:
-    #    """Returns first dot key value found"""
-    #    for key,value in self.items():
-    #        new_prefix = prefix + '.' + key if prefix else key
-    #        if isinstance(value,dict) and value != {}:
-    #            self
-    #            return DotDict.flatten_recursive(value,new_prefix,keys + [key])
-    #        else:
-    #            return (new_prefix,value,keys + [key])
+    def expand(self) -> dict:
+        """Attempts to flatten and then expand dictionary
+        to allow for dot notation namespace definition
+        """
+        self.flatten()
+        self.dot_expand()
+        return self
 
     def dot_expand(self):
         """Does a single layer expansion assuming dictionary is flat"""
-        for key,value in sorted(self.items()):
-            print(key)
+        for key, value in sorted(self.items()):
             del self[key]
-            self.set_via_dot_string(key,value)
+            self.set_via_dot_string(key, value)
         return self
 
     def flatten(self) -> dict:

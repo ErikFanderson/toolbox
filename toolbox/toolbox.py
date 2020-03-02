@@ -32,6 +32,7 @@ from .dot_dict import DotDict
 # and spit out at the end of the job
 # TODO Get resolution function working for reading in configs
 
+
 @dataclass(frozen=True)
 class ToolBoxParams:
     """All command line args to create ToolBox"""
@@ -131,11 +132,12 @@ class ToolBox:
             db['tools'][tool['name']] = {}
             descriptions['tools'][tool['name']] = {}
             schema['tools'][tool['name']] = {}
-            for property,values in tool['properties'].items():
+            for property, values in tool['properties'].items():
                 db['tools'][tool['name']][property] = values['default']
-                descriptions['tools'][tool['name']][property] = values['description']
+                descriptions['tools'][
+                    tool['name']][property] = values['description']
                 schema['tools'][tool['name']][property] = values['schema']
-        db.set_via_dot_string("test",33)
+        db.set_via_dot_string("test", 33)
         # Fill database with config information
         config_db = self.resolve(self._args.config)
         ###configs = self.validate_configs()
@@ -152,41 +154,41 @@ class ToolBox:
         ##configs = args['config']
         ##self.combine_configs()
 
-    def resolve(self,configs: List[str]) -> dict:
+    def resolve(self, configs: List[str]) -> dict:
         """Checks configs are valid files and resolves any ${}"""
         config_dict = DotDict()
         checked_configs = self.check_files(configs)
         for config in checked_configs:
-            with open(config,'r') as fp:
-                data = yaml.load(fp,Loader=yaml.SafeLoader)
+            with open(config, 'r') as fp:
+                data = yaml.load(fp, Loader=yaml.SafeLoader)
                 config_dict.update(data)
         print("flattened dict: " + str(config_dict.flatten()))
         #print(config_dict.expand())
-                #config_dict.update(data)
-                #config_dict.expand_dot_keys()
+        #config_dict.update(data)
+        #config_dict.expand_dot_keys()
         # Resolve references
         #for config,value in config_dict.items():
         #    config_dict[config] = self.resolve_key(config,config,config_dict)
         return config_dict
 
-    def resolve_key(self,key: str,og_key: str, config_dict: dict) -> Any:
+    def resolve_key(self, key: str, og_key: str, config_dict: dict) -> Any:
         """Issues first resolve key recursive. Need separate for
         circular reference issue
         """
         key_ref = re.compile('\${(.*)}')
         config = config_dict[key]
-        if isinstance(config_dict[key],str):
+        if isinstance(config_dict[key], str):
             for ref in key_ref.findall(config_dict[key]):
-                self.access_via_string(ref,config_dict)
+                self.access_via_string(ref, config_dict)
             #m = key_ref.match(str(config_dict[key]))
             #if m:
             #    #key_ref.sub(resolve_key_recursive',)
             #    print((m.groups))
         # TODO implement me
-        elif isinstance(config_dict[key],list):
+        elif isinstance(config_dict[key], list):
             pass
         # TODO implement me
-        elif isinstance(config_dict[key],dict):
+        elif isinstance(config_dict[key], dict):
             pass
         return config
         #try:
