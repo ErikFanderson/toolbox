@@ -1,4 +1,5 @@
 tools.ToolA.property0: "hello"
+tools.ToolA.property0: "hello_again"
 tools:
   ToolA:
     property1: 39

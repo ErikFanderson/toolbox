@@ -26,6 +26,7 @@ from yamale.schema.schema import Schema
 from .logger import Logger, LogLevel, LoggerParams
 from .path_helper import PathHelper
 from .dot_dict import DotDict
+from .database import Database
 
 # TODO Use make_dataclass after reading all keys to dynamically create inputs database
 # TODO There will be a separate outputs database that is generated and merged with inputs
@@ -45,21 +46,23 @@ class ToolBoxParams:
     job: str
 
 
-class ToolBox:
+class ToolBox(Database):
     """Coordinates the running of tools and jobs"""
     def __init__(self, args: ToolBoxParams) -> None:
         """Inializes project manager with global namespace from args list"""
-        self._args = args
-        # Make build directory and initialize logger
-        self._build_dir = self.make_build_dir()
+        super().__init__()
+        # Create logger and log function
         self._logger = Logger(args.log_params)
         self.log = self._logger.log
-        # Ensure that home directory is set
-        self._home_dir = PathHelper.check_dir(os.getenv('TOOLBOX_HOME'))
-        if self._home_dir is None:
-            self.exit('TOOLBOX_HOME variable not set or incorrectly set.')
-        # Populate Database
-        self._db = self.generate_global_database()
+        # Load args and make build directory
+        self.load_dict({"args": args})
+        self._build_dir = self.make_build_dir()
+        ## Ensure that home directory is set
+        #self._home_dir = PathHelper.check_dir(os.getenv('TOOLBOX_HOME'))
+        #if self._home_dir is None:
+        #    self.exit('TOOLBOX_HOME variable not set or incorrectly set.')
+        ## Populate Database
+        #self._db = self.generate_global_database()
 
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
@@ -100,25 +103,27 @@ class ToolBox:
 
     def get_db(self, field: str) -> Any:
         """Attempts to get value from database"""
-        try:
-            return self._db[field]
-        except KeyError:
-            pass  # Use logger to issue warning
+        success, value = super().get_db(field)
+        if success:
+            return value
+        else:
+            self.exit(f'Field "{field}" not found in internal database.')
 
     def make_build_dir(self):
         """Make build directory and symlink"""
         date_str = datetime.now().strftime("%m-%d-%Y-%H:%M:%S")
-        build_dir = Path(self._args.build_dir) / self._args.job / date_str
-        build_dir = build_dir.resolve()
-        build_dir.mkdir(parents=True, exist_ok=True)
-        PathHelper.unlink_missing_ok(build_dir.parent / 'current')
-        (build_dir.parent / 'current').symlink_to(build_dir,
-                                                  target_is_directory=True)
-        if self._args.symlink:
-            PathHelper.unlink_missing_ok(Path(self._args.symlink))
-            Path(self._args.symlink).symlink_to(build_dir.parents[1],
-                                                target_is_directory=True)
-        return build_dir
+        print(self.get_db("args.build_dir"))
+        #build_dir = Path(self._args.build_dir) / self._args.job / date_str
+        #build_dir = build_dir.resolve()
+        #build_dir.mkdir(parents=True, exist_ok=True)
+        #PathHelper.unlink_missing_ok(build_dir.parent / 'current')
+        #(build_dir.parent / 'current').symlink_to(build_dir,
+        #                                          target_is_directory=True)
+        #if self._args.symlink:
+        #    PathHelper.unlink_missing_ok(Path(self._args.symlink))
+        #    Path(self._args.symlink).symlink_to(build_dir.parents[1],
+        #                                        target_is_directory=True)
+        #return build_dir
 
     def generate_global_database(self) -> dict:
         """Generates global database from config files and args"""
@@ -137,7 +142,6 @@ class ToolBox:
                 descriptions['tools'][
                     tool['name']][property] = values['description']
                 schema['tools'][tool['name']][property] = values['schema']
-        db.set_via_dot_string("test", 33)
         # Fill database with config information
         config_db = self.resolve(self._args.config)
         ###configs = self.validate_configs()
@@ -162,13 +166,16 @@ class ToolBox:
             with open(config, 'r') as fp:
                 data = yaml.load(fp, Loader=yaml.SafeLoader)
                 config_dict.update(data)
-        print("flattened dict: " + str(config_dict.flatten()))
-        #print(config_dict.expand())
-        #config_dict.update(data)
-        #config_dict.expand_dot_keys()
-        # Resolve references
-        #for config,value in config_dict.items():
-        #    config_dict[config] = self.resolve_key(config,config,config_dict)
+        # Flatten and resolve
+        config_dict.flatten()
+        # Resolve steps
+        # 1. Traverse entire namespace
+        # 2. When hit string run recursive func to get value
+        #   (beware circular AND do not allow replacement for list or dict)
+        for config, value in config_dict.items():
+            config_dict[config] = self.resolve_key(config, config, config_dict)
+        # Expand
+        config_dict.dot_expand()
         return config_dict
 
     def resolve_key(self, key: str, og_key: str, config_dict: dict) -> Any:
@@ -179,11 +186,7 @@ class ToolBox:
         config = config_dict[key]
         if isinstance(config_dict[key], str):
             for ref in key_ref.findall(config_dict[key]):
-                self.access_via_string(ref, config_dict)
-            #m = key_ref.match(str(config_dict[key]))
-            #if m:
-            #    #key_ref.sub(resolve_key_recursive',)
-            #    print((m.groups))
+                new_ref = config_dict[ref]
         # TODO implement me
         elif isinstance(config_dict[key], list):
             pass
@@ -191,13 +194,6 @@ class ToolBox:
         elif isinstance(config_dict[key], dict):
             pass
         return config
-        #try:
-        #    re.sub('${([.]*)}',config_dict[key])
-        #except KeyError:
-        #    self.exit('Key "{key}" does not exist.')
-        #resolve_key_recursive()
-
-    #def resolve_key_recursive
 
     def validate_tools_file(self, fname: str) -> List[Path]:
         """Validates the tools file
@@ -241,5 +237,6 @@ class ToolBox:
         return yml
 
     def execute(self):
-        shutil.copy(self._args.log_params.out_fname,
-                    str(self._build_dir / self._args.log_params.out_fname))
+        pass
+        #shutil.copy(self._args.log_params.out_fname,
+        #            str(self._build_dir / self._args.log_params.out_fname))

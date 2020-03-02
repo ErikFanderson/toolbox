@@ -23,4 +23,7 @@ test:
 tags:
 	ctags -R .
 
-.PHONY: lint format type test
+clean:
+	rm -rf build/ tags
+
+.PHONY: lint format type test clean
