@@ -148,15 +148,19 @@ class ToolBox(Database):
                      LogLevel.WARNING)
         return checked_dir
 
-    def check_files(self, fnames: List[str]) -> Optional[List[Path]]:
+    def check_files(self, fnames: List[str]) -> List[Path]:
         """Check files function but with added logging"""
-        checked_fnames = [self.check_file(fname) for fname in fnames]
-        return [fname for fname in checked_fnames if fname]
+        if fnames:
+            checked_fnames = [self.check_file(fname) for fname in fnames]
+            return [fname for fname in checked_fnames if fname]
+        return []
 
-    def check_dirs(self, dirs: List[str]) -> Optional[List[Path]]:
+    def check_dirs(self, dirs: List[str]) -> List[Path]:
         """Check files function but with added logging"""
-        checked_dirs = [self.check_dir(directory) for directory in dirs]
-        return [directory for directory in checked_dirs if directory]
+        if dirs:
+            checked_dirs = [self.check_dir(directory) for directory in dirs]
+            return [directory for directory in checked_dirs if directory]
+        return []
 
     def validate_yaml(self, yaml_fname: str, schema_fname: str):
         """Checks to see if output is an error message and exits if it is"""

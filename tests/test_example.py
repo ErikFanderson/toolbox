@@ -17,6 +17,13 @@ from toolbox.path_helper import PathHelper
 from toolbox.logger import LogLevel, LoggerParams
 from toolbox.dot_dict import DotDict, DictError
 
+# TODO implement me
+def test_no_configs_passed():
+    """Checks to makes sure works if no configs are passed"""
+
+# TODO implement me
+def test_tool_file_empty():
+    """Checks to makes sure proper error raised when no tools found"""
 
 # TODO implement me
 def test_tool_is_not_class_tool():
@@ -182,7 +189,7 @@ def test_path_helper():
 def test_tool_validate():
     mock_dir = Path(__file__).resolve().parent / 'mock'
     args = ToolBoxParams(f'{mock_dir}/tools.yml',
-                         build_dir='test_build',
+                         build_dir='build',
                          symlink=None,
                          config=[
                              f'{mock_dir}/config_a.yml',
