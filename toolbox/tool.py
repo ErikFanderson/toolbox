@@ -27,7 +27,7 @@ class Tool(ABC):
         """For changing the logging functionality between steps"""
         self._log = log
 
-    def log(self, msg: str, level: Callable[[str, LogLevel], None]):
+    def log(self, msg: str, level: LogLevel = LogLevel.INFO):
         """Function for logging information"""
         self._log(msg, level)
 
