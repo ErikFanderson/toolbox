@@ -7,7 +7,7 @@
 
 # Imports - standard library
 from argparse import Namespace
-from typing import Tuple, Optional, NamedTuple, Any, Callable, List
+from typing import Union, Tuple, Optional, NamedTuple, Any, Callable, List
 from enum import Enum
 from dataclasses import dataclass
 import os, sys
@@ -16,6 +16,7 @@ from datetime import datetime
 import shutil
 import re
 import copy
+import importlib
 
 # Imports - 3rd party packages
 import yaml
@@ -27,11 +28,21 @@ from .logger import Logger, LogLevel, LoggerParams
 from .path_helper import PathHelper
 from .dot_dict import DotDict
 from .database import Database
+from .tool import Tool
 
-# TODO Use make_dataclass after reading all keys to dynamically create inputs database
-# TODO There will be a separate outputs database that is generated and merged with inputs
-# and spit out at the end of the job
 # TODO Get resolution function working for reading in configs
+
+
+class ToolBoxError(Exception):
+    """KeyError for internal database"""
+    pass
+
+
+@dataclass(frozen=True)
+class Task:
+    """simple dataclass for Task (substep of job)"""
+    tool: str
+    additional_configs: Optional[List[str]] = None
 
 
 @dataclass(frozen=True)
@@ -50,7 +61,7 @@ class ToolBox(Database):
     """Coordinates the running of tools and jobs"""
     def __init__(self, args: ToolBoxParams) -> None:
         """Inializes project manager with global namespace from args list"""
-        super().__init__()
+        super().__init__("internal")
         # Create logger and log function
         self._logger = Logger(args.log_params)
         self.log = self._logger.log
@@ -58,8 +69,8 @@ class ToolBox(Database):
         self._home_dir = PathHelper.check_dir(os.getenv('TOOLBOX_HOME'))
         if self._home_dir is None:
             self.exit('TOOLBOX_HOME variable not set or incorrectly set.')
-        # Load args and make build directory
-        self.load_dict({"args": args.__dict__})
+        # Load internal.args and make build directory
+        self._load_dict({"internal.args": args.__dict__})
         self._job_dir = self.make_build_dir()
         # Populate Database
         self.populate_database()
@@ -69,25 +80,36 @@ class ToolBox(Database):
         self.load_tools()
         self.load_configs()
         self.check_db()
-        ## combine_schemas
-        ## check_configs
-        ## return make_dataclass
-        ##configs = args['config']
-        ##self.combine_configs()
 
     def load_tools(self):
         """Loads tools and schemas into database"""
         # Check and add tools to database
-        tool_paths = self.validate_tools_file(self.get_db("args.tools_file"))
+        tool_paths = self.validate_tools_file(
+            self.get_db("internal.args.tools_file"))
         tool_config = self.validate_tools(tool_paths)
+        # Add to internals
+        self._load_dict({"internals": tool_config})
+        # Add to unprotected namespace
         self.load_dict(tool_config)
 
     def load_configs(self):
         """Loads all config files into database"""
-        configs = self.check_files(self.get_db('args.config'))
+        configs = self.check_files(self.get_db('internal.args.config'))
         for config in configs:
-            with open(config, 'r') as fp:
-                self.load_dict(yaml.load(fp, Loader=yaml.SafeLoader))
+            self.load_config(config)
+
+    def load_config(self, config: Union[str, Path]):
+        """Method for loading config to db. Exists in case this
+        behavior needs to change in the future.
+        """
+        with open(config, 'r') as fp:
+            self.load_dict(yaml.load(fp, Loader=yaml.SafeLoader))
+
+    def validate_db(self, fname):
+        """Runs database against schema in file fname"""
+        err_msg = PathHelper.yamale_validate_dict_with_file(self._db, fname)
+        if isinstance(err_msg, str):
+            self.exit(f"Error validating internal database.{err_msg}")
 
     def check_db(self):
         """Checks database against default and provided schemas
@@ -95,8 +117,9 @@ class ToolBox(Database):
         # TODO ultimately this should be rewritten to not perform validation
         serially... Construct large schema and run on entire database
         """
-        schema = {}
-        for tool_name, tool in self.get_db("tools").items():
+        # Check tool properties
+        tools = self.get_db("internal.tools")
+        for tool_name, tool in tools.items():
             for prop_name, prop in tool['properties'].items():
                 dot_str = f"tools.{tool_name}.{prop_name}"
                 data = {f"{prop_name}": self.get_db(dot_str)}
@@ -107,6 +130,8 @@ class ToolBox(Database):
                     self.exit(
                         f'Invalid value for property "{dot_str}".\nDescription: {descr}{err_msg}'
                     )
+        # Check jobs
+        self.validate_db('toolbox/schemas/jobs.yml')
 
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
@@ -140,10 +165,11 @@ class ToolBox(Database):
             self.exit(config)
         return config
 
-    def exit(self, msg: str) -> None:
+    def exit(self, msg: str, exception: Exception = ToolBoxError) -> None:
         """Method for nicely erroring and exiting"""
+        self.cleanup()
         self.log(msg, LogLevel.ERROR)
-        sys.exit(-1)
+        raise exception(msg)
 
     def get_db(self, field: str) -> Any:
         """Attempts to get value from database"""
@@ -156,55 +182,19 @@ class ToolBox(Database):
     def make_build_dir(self):
         """Make build directory and symlink"""
         date_str = datetime.now().strftime("%m-%d-%Y-%H:%M:%S")
-        build_dir = Path(
-            self.get_db("args.build_dir")) / self.get_db("args.job") / date_str
+        build_dir = Path(self.get_db("internal.args.build_dir")) / self.get_db(
+            "internal.args.job") / date_str
         build_dir = build_dir.resolve()
         build_dir.mkdir(parents=True, exist_ok=True)
         PathHelper.unlink_missing_ok(build_dir.parent / 'current')
         (build_dir.parent / 'current').symlink_to(build_dir,
                                                   target_is_directory=True)
-        if self.get_db("args.symlink"):
-            PathHelper.unlink_missing_ok(Path(self.get_db("args.symlink")))
-            Path(self.get_db("args.symlink")).symlink_to(
+        if self.get_db("internal.args.symlink"):
+            PathHelper.unlink_missing_ok(
+                Path(self.get_db("internal.args.symlink")))
+            Path(self.get_db("internal.args.symlink")).symlink_to(
                 build_dir.parents[1], target_is_directory=True)
         return build_dir
-
-    #def resolve(self, configs: List[str]) -> dict:
-    #    """Checks configs are valid files and resolves any ${}"""
-    #    config_dict = DotDict()
-    #    checked_configs = self.check_files(configs)
-    #    for config in checked_configs:
-    #        with open(config, 'r') as fp:
-    #            data = yaml.load(fp, Loader=yaml.SafeLoader)
-    #            config_dict.update(data)
-    #    # Flatten and resolve
-    #    config_dict.flatten()
-    #    # Resolve steps
-    #    # 1. Traverse entire namespace
-    #    # 2. When hit string run recursive func to get value
-    #    #   (beware circular AND do not allow replacement for list or dict)
-    #    for config, value in config_dict.items():
-    #        config_dict[config] = self.resolve_key(config, config, config_dict)
-    #    # Expand
-    #    config_dict.dot_expand()
-    #    return config_dict
-
-    #def resolve_key(self, key: str, og_key: str, config_dict: dict) -> Any:
-    #    """Issues first resolve key recursive. Need separate for
-    #    circular reference issue
-    #    """
-    #    key_ref = re.compile('\${(.*)}')
-    #    config = config_dict[key]
-    #    if isinstance(config_dict[key], str):
-    #        for ref in key_ref.findall(config_dict[key]):
-    #            new_ref = config_dict[ref]
-    #    # TODO implement me
-    #    elif isinstance(config_dict[key], list):
-    #        pass
-    #    # TODO implement me
-    #    elif isinstance(config_dict[key], dict):
-    #        pass
-    #    return config
 
     def validate_tools_file(self, fname: str) -> List[Path]:
         """Validates the tools file
@@ -244,7 +234,9 @@ class ToolBox(Database):
         return tool_config
 
     def validate_tool(self, tool_path: Path) -> dict:
-        """Individually validates a tool"""
+        """Individually validates a tool
+        NOTE: This function modifies internal database
+        """
         # Check and validate tool.yml
         tool_yml = self.check_file(tool_path / 'tool.yml')
         if tool_yml is None:
@@ -253,16 +245,62 @@ class ToolBox(Database):
             )
         yml = self.validate_yaml(
             str(tool_yml), str(self._home_dir / 'toolbox/schemas/tool.yml'))
-        # Change dictionary before merging with other tools
+        # Save name but delete from base dict
         tool_name = yml["name"]
         del yml["name"]
-        tool_config = {tool_name: yml}
+        # Update internal database with original yml dict + path
+        internal_config = copy.deepcopy(yml)
+        internal_config['path'] = str(tool_path)
+        self._load_dict({f"internal.tools.{tool_name}": internal_config})
+        # Generate external tool database
+        tool_config = {tool_name: {}}
         for prop_name, prop in yml["properties"].items():
             tool_config[tool_name][prop_name] = prop['default']
         return tool_config
 
-    def execute(self):
-        """Runs the job!"""
+    def cleanup(self):
+        """Performs any actions required before exiting program"""
         # Copy log file to build directory
         shutil.copy(
-            self.get_db("args.log_params").out_fname, str(self._job_dir))
+            self.get_db("internal.args.log_params").out_fname,
+            str(self._job_dir))
+
+    def run_task(self, task: Task) -> None:
+        """Runs the task (i.e. subcomponent of a job)"""
+        # Save current state of database
+        original_db = copy.deepcopy(self._db)
+        # Load in additional configs and rerun db validation
+        if task.additional_configs:
+            for config in task.additional_configs:
+                self.load_config(config)
+        self.check_db()
+        # Import in tool (using absolute path??)
+        tool_path = Path(self.get_db(f"internal.tools.{task.tool}.path"))
+        sys.path.insert(1, str(tool_path.parent))
+        tool_module = importlib.import_module(tool_path.stem)
+        ToolClass = getattr(tool_module, task.tool)
+        tool = ToolClass(self._db, self.log)
+        if not isinstance(tool, Tool):
+            self.exit(f'Tool "{task.tool}" is not a sub-class of Tool.')
+        # Log step function for steps
+        def log_step(msg: str, step: str, level: LogLevel) -> None:
+            prefix = f"[{self.get_db('internal.args.job')}] [{task.tool}] [{step}] [%(levelname)s]"
+            self.log(msg, level, prefix)
+        # Run steps within task [job] [tool] [step]
+        for step in tool.steps():
+            log_fn = lambda msg, level: log_step(
+                msg=msg, step=step.__name__, level=level)
+            tool.set_log_fn(log_fn)
+            self.log(f'Running step "{step.__name__}"')
+            step()
+        # Reload original contents of database
+        self._db = original_db
+        sys.path.remove(str(tool_path.parent))
+
+    def execute(self):
+        """Runs the job!"""
+        #print(self.get_db("internal"))
+        tasks = self.get_db(f'jobs.{self.get_db("internal.args.job")}')
+        for task in tasks:
+            self.run_task(Task(**task))
+        self.cleanup()

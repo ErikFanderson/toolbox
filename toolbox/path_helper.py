@@ -69,6 +69,18 @@ class PathHelper:
         except ValueError as err:
             return str(err)
 
+    @classmethod
+    def yamale_validate_dict_with_file(cls, data: dict,
+                                       schema_fname: str) -> Union[str, dict]:
+        """Uses yamale to validate dictionary"""
+        schema = yamale.make_schema(schema_fname, validators=cls.validators)
+        data = [(data, '')]
+        try:
+            yamale.validate(schema, data)
+            return data[0][0]
+        except ValueError as err:
+            return str(err)
+
     @staticmethod
     def get_rel_path(path):
         """Gets path relative to home_dir"""

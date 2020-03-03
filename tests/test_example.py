@@ -19,6 +19,40 @@ from toolbox.dot_dict import DotDict, DictError
 
 
 # TODO implement me
+def test_tool_is_not_class_tool():
+    """Checks to makes sure that an imported tool is actually a Tool"""
+
+
+# TODO implement me
+def test_no_jobs_in_namespace():
+    """Checks to makes sure that when no jobs namespace is passed an error occurs"""
+
+
+# TODO implement me
+def test_invalid_job_passed():
+    """Checks to makes sure that invalid job names cause error"""
+
+
+# TODO implement me
+def test_protected_namespace_database():
+    """Checks protected namespace cannot be overwritten in database"""
+
+
+# TODO implement me
+def test_valid_additional_config():
+    """Checks that toolbox works when given valid
+    additional configs when running a job.
+    """
+
+
+# TODO implement me
+def test_invalid_additional_config():
+    """Checks that toolbox errors when given invalid
+    additional configs when running a job.
+    """
+
+
+# TODO implement me
 def test_invalid_config_value():
     """Checks that toolbox errors when given invalid configs"""
 
@@ -147,12 +181,15 @@ def test_path_helper():
 
 def test_tool_validate():
     mock_dir = Path(__file__).resolve().parent / 'mock'
-    args = ToolBoxParams(
-        f'{mock_dir}/tools.yml',
-        build_dir='test_build',
-        symlink=None,
-        config=[f'{mock_dir}/config_a.yml', f'{mock_dir}/config_b.yml'],
-        interactive=False,
-        log_params=LoggerParams(LogLevel.DEBUG),
-        job='test_job')
+    args = ToolBoxParams(f'{mock_dir}/tools.yml',
+                         build_dir='test_build',
+                         symlink=None,
+                         config=[
+                             f'{mock_dir}/config_a.yml',
+                             f'{mock_dir}/config_b.yml',
+                             f'{mock_dir}/job.yml',
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
     tb = ToolBox(args)

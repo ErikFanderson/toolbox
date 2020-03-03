@@ -9,6 +9,7 @@
 from dataclasses import dataclass
 from enum import Enum
 import logging
+from logging import Formatter
 from typing import Optional
 
 # Imports - 3rd party packages
@@ -33,7 +34,7 @@ class LoggerParams:
     """
     level: LogLevel
     out_fname: Optional[str] = None
-    name: str = "default_logger_name"
+    name: str = "default"
     formatter: str = "[%(asctime)s] [%(threadName)s] [%(levelname)s] %(message)s"
 
 
@@ -44,22 +45,38 @@ class Logger:
         self.p = p
         self._logger = logging.getLogger(p.name)
         self._logger.setLevel(p.level.value)
-        formatter = logging.Formatter(p.formatter)
+        formatter = Formatter(p.formatter)
         # Output file setup
         if p.out_fname:
-            file_handler = logging.FileHandler(p.out_fname, mode='w')
-            file_handler.setFormatter(formatter)
-            self._logger.addHandler(file_handler)
+            self.file_handler = logging.FileHandler(p.out_fname, mode='w')
+            self.file_handler.setFormatter(formatter)
+            self._logger.addHandler(self.file_handler)
         # Stream Handler setup
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
-        self._logger.addHandler(stream_handler)
+        self.stream_handler = logging.StreamHandler()
+        self.stream_handler.setFormatter(formatter)
+        self._logger.addHandler(self.stream_handler)
 
-    def log(self, msg: str, level: LogLevel = LogLevel.INFO) -> None:
+    def log(self,
+            msg: str,
+            level: LogLevel = LogLevel.INFO,
+            prefix: Optional[str] = None) -> None:
         """Basic log function for logger class
         :param msg Message to be logged
         :param level LogLevel to use when logging msg
+        :param prefix Will add prefix to the logger formatter
         """
+        # Update formatter
+        if prefix:
+            if self.p.out_fname:
+                self.file_handler.setFormatter(
+                    Formatter(f"{prefix} %(message)s"))
+            self.stream_handler.setFormatter(
+                Formatter(f"{prefix} %(message)s"))
+        else:
+            if self.p.out_fname:
+                self.file_handler.setFormatter(Formatter(self.p.formatter))
+            self.stream_handler.setFormatter(Formatter(self.p.formatter))
+        # Log information
         if self._logger.level == LogLevel.NOTSET.value:
             print(msg)
         else:

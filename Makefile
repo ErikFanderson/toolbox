@@ -9,7 +9,7 @@ lint:
 
 # Formats pyproject directory recursively
 format:
-	yapf -i -r toolbox 
+	yapf -i -r toolbox tests 
 
 # Type checks pyproject directory recursively
 type:

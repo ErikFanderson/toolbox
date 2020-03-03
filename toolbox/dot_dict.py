@@ -39,8 +39,6 @@ class DotDict(dict):
                 if len(keys) == (i + 1):
                     set_val[k] = value
                 else:
-                    if dot_str == "tools.ToolA.property0":
-                        print("else")
                     set_val[k] = {}
                     set_val = set_val[k]
             except TypeError:

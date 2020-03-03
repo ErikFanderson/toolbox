@@ -6,7 +6,7 @@
 """Database for importing, expanding, and resolving configuration files"""
 
 # Imports - standard library
-from typing import Tuple, Any
+from typing import Tuple, Any, Optional
 import copy
 
 # Imports - 3rd party packages
@@ -15,12 +15,18 @@ import copy
 from .dot_dict import DotDict
 
 
+class DatabaseError(Exception):
+    """KeyError for internal database"""
+    pass
+
+
 class Database:
     """Database class for holding global toolbox database"""
-    def __init__(self):
+    def __init__(self, protected_namespace: Optional[str] = None):
+        self.internal = protected_namespace
         self._db = DotDict()
 
-    def load_dict(self, dictionary: dict) -> None:
+    def _load_dict(self, dictionary: dict) -> None:
         """Adds to internal database using a dict object
         :param dictionary Dict to be loaded into database
         WARNING! RUTHLESSLY OVERWRITES DATA
@@ -30,10 +36,20 @@ class Database:
         for key, value in db.items():
             self._db.set_via_dot_string(key, value)
 
-    def load_yml(self, fname: str) -> None:
-        """Adds to internal database using yaml files
-        :param fname filename for the yaml config file
+    def load_dict(self, dictionary: dict) -> None:
+        """Adds to internal database using a dict object
+        :param dictionary Dict to be loaded into database
+        WARNING! RUTHLESSLY OVERWRITES DATA
         """
+        db = copy.deepcopy(dictionary)
+        db = DotDict(db).flatten()
+        for key, value in db.items():
+            if self.internal and key.startswith(self.internal):
+                raise DatabaseError(
+                    f'Key "{key}" attempts to modify protected namespace "{self.internal}"'
+                )
+            self._db.set_via_dot_string(key, value)
+
     def get_db(self, field: str) -> Tuple[bool, Any]:
         """Attempts to get value from database
         :param field Field to be retrieved from database

@@ -70,8 +70,10 @@ class ToolBoxCLIDriver:
     def main(self) -> None:
         """Creates project manager and launches job"""
         args = self.parse_args()
-        log_params = LoggerParams(level=LogLevel[(args.log_level).upper()],
-                                  out_fname=args.output + '.log')
+        log_params = LoggerParams(
+            level=LogLevel[(args.log_level).upper()],
+            out_fname=args.output + '.log',
+            formatter="[toolbox] [%(levelname)s] %(message)s")
         tb_args = ToolBoxParams(args.tools_file, args.build_dir, args.symlink,
                                 args.config, args.interactive, log_params,
                                 args.job)
