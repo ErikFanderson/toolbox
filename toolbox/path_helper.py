@@ -15,6 +15,7 @@ import sys
 import yaml
 import yamale
 from yamale.validators import DefaultValidators, Validator
+from yamale.schema import Schema
 import jsonschema
 
 # Imports - local source
@@ -45,11 +46,23 @@ class PathHelper:
             pass
 
     @classmethod
-    def yamale_validate(cls, yaml_fname: str,
-                        schema_fname: str) -> Union[str, dict]:
+    def yamale_validate_files(cls, yaml_fname: str,
+                              schema_fname: str) -> Union[str, dict]:
         """Uses yamale to calidate yaml file"""
         schema = yamale.make_schema(schema_fname, validators=cls.validators)
         data = yamale.make_data(yaml_fname)
+        try:
+            yamale.validate(schema, data)
+            return data[0][0]
+        except ValueError as err:
+            return str(err)
+
+    @classmethod
+    def yamale_validate_dicts(cls, data: dict,
+                              schema: dict) -> Union[str, dict]:
+        """Uses yamale to validate dictionary"""
+        schema = Schema(schema, validators=cls.validators)
+        data = [(data, '')]
         try:
             yamale.validate(schema, data)
             return data[0][0]

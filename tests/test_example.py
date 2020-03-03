@@ -17,9 +17,26 @@ from toolbox.path_helper import PathHelper
 from toolbox.logger import LogLevel, LoggerParams
 from toolbox.dot_dict import DotDict, DictError
 
+
+# TODO implement me
+def test_invalid_config_value():
+    """Checks that toolbox errors when given invalid configs"""
+
+
+# TODO implement me
+def test_valid_config_value():
+    """Checks that toolbox does not error when given valid configs"""
+
+
+# TODO implement me
+def test_missing_config_value():
+    """Checks that toolbox errors when missing a required value"""
+
+
 # TODO implement me
 def test_tools_w_same_name_error():
     """Makes sure that all tools have different names"""
+
 
 def test_dot_dict_redefinition():
     """Fails becuase tries to redefine field"""
@@ -130,11 +147,12 @@ def test_path_helper():
 
 def test_tool_validate():
     mock_dir = Path(__file__).resolve().parent / 'mock'
-    args = ToolBoxParams(f'{mock_dir}/tools.yml',
-                         build_dir='test_build',
-                         symlink=None,
-                         config=[],
-                         interactive=False,
-                         log_params=LoggerParams(LogLevel.DEBUG),
-                         job='test_job')
+    args = ToolBoxParams(
+        f'{mock_dir}/tools.yml',
+        build_dir='test_build',
+        symlink=None,
+        config=[f'{mock_dir}/config_a.yml', f'{mock_dir}/config_b.yml'],
+        interactive=False,
+        log_params=LoggerParams(LogLevel.DEBUG),
+        job='test_job')
     tb = ToolBox(args)

@@ -67,34 +67,8 @@ class ToolBox(Database):
     def populate_database(self) -> dict:
         """Generates global database from config files and args"""
         self.load_tools()
-        print(self.get_db('tools.ToolA.property0'))
         self.load_configs()
-        print(self.get_db('tools.ToolA.property0'))
-        #db = DotDict({'tools': {}})
-        #descriptions = {'tools': {}}
-        #schema = {'tools': {}}
-        ## Fill db, descriptions, and schema w/ tools.yml
-        #tool_paths = self.validate_tools_file(self._args.tools_file)
-        #tool_configs = self.validate_tools(tool_paths)
-        #for tool in tool_configs:
-        #    db['tools'][tool['name']] = {}
-        #    descriptions['tools'][tool['name']] = {}
-        #    schema['tools'][tool['name']] = {}
-        #    for property, values in tool['properties'].items():
-        #        db['tools'][tool['name']][property] = values['default']
-        #        descriptions['tools'][
-        #            tool['name']][property] = values['description']
-        #        schema['tools'][tool['name']][property] = values['schema']
-        ## Fill database with config information
-        #config_db = self.resolve(self._args.config)
-        ###configs = self.validate_configs()
-        #return db
-        ## Iterate through tools
-        ## Load default tool config
-        ##
-        ## Iterate through config files
-        ## Overwrites any default settings
-        ## combine_configs
+        self.check_db()
         ## combine_schemas
         ## check_configs
         ## return make_dataclass
@@ -114,6 +88,25 @@ class ToolBox(Database):
         for config in configs:
             with open(config, 'r') as fp:
                 self.load_dict(yaml.load(fp, Loader=yaml.SafeLoader))
+
+    def check_db(self):
+        """Checks database against default and provided schemas
+        To be run after loading tools, configs, and performing resolution
+        # TODO ultimately this should be rewritten to not perform validation
+        serially... Construct large schema and run on entire database
+        """
+        schema = {}
+        for tool_name, tool in self.get_db("tools").items():
+            for prop_name, prop in tool['properties'].items():
+                dot_str = f"tools.{tool_name}.{prop_name}"
+                data = {f"{prop_name}": self.get_db(dot_str)}
+                schema = {f"{prop_name}": prop["schema"]}
+                err_msg = PathHelper.yamale_validate_dicts(data, schema)
+                if isinstance(err_msg, str):
+                    descr = prop["description"]
+                    self.exit(
+                        f'Invalid value for property "{dot_str}".\nDescription: {descr}{err_msg}'
+                    )
 
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
@@ -142,7 +135,7 @@ class ToolBox(Database):
 
     def validate_yaml(self, yaml_fname: str, schema_fname: str):
         """Checks to see if output is an error message and exits if it is"""
-        config = PathHelper.yamale_validate(yaml_fname, schema_fname)
+        config = PathHelper.yamale_validate_files(yaml_fname, schema_fname)
         if isinstance(config, str):
             self.exit(config)
         return config
