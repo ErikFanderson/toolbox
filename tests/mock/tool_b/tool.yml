@@ -1,4 +1,4 @@
-name: ToolA
+name: ToolB
 properties:
   property0:
     description: "Here is a description of not required property0"

@@ -33,7 +33,7 @@ class ToolBoxCLIDriver:
             '--build-dir',
             default='build',
             help=
-            'Specifies the build/outputs directory for all jobs. Default: build/'
+            'Specifies the build/outputs directory for all jobs. Default: build'
         )
         parser.add_argument(
             '-ln',
@@ -70,10 +70,10 @@ class ToolBoxCLIDriver:
     def main(self) -> None:
         """Creates project manager and launches job"""
         args = self.parse_args()
-        logger_params = LoggerParams(level=LogLevel[(args.log_level).upper()],
-                                     out_fname=args.output + '.log')
+        log_params = LoggerParams(level=LogLevel[(args.log_level).upper()],
+                                  out_fname=args.output + '.log')
         tb_args = ToolBoxParams(args.tools_file, args.build_dir, args.symlink,
-                                args.config, args.interactive, logger_params,
+                                args.config, args.interactive, log_params,
                                 args.job)
         tb = ToolBox(tb_args)
         tb.execute()

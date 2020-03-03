@@ -17,6 +17,9 @@ from toolbox.path_helper import PathHelper
 from toolbox.logger import LogLevel, LoggerParams
 from toolbox.dot_dict import DotDict, DictError
 
+# TODO implement me
+def test_tools_w_same_name_error():
+    """Makes sure that all tools have different names"""
 
 def test_dot_dict_redefinition():
     """Fails becuase tries to redefine field"""

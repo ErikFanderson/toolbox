@@ -41,6 +41,7 @@ class Logger:
     """Configurable logger for ToolBox"""
     def __init__(self, p: LoggerParams) -> None:
         """Initializes a logger using db values from project manager"""
+        self.p = p
         self._logger = logging.getLogger(p.name)
         self._logger.setLevel(p.level.value)
         formatter = logging.Formatter(p.formatter)

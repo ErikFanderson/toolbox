@@ -31,11 +31,16 @@ class DotDict(dict):
         set_val = self
         for i, k in enumerate(keys):
             try:
-                set_val = set_val[k]
+                if len(keys) == (i + 1):
+                    set_val[k] = value
+                else:
+                    set_val = set_val[k]
             except KeyError:
                 if len(keys) == (i + 1):
                     set_val[k] = value
                 else:
+                    if dot_str == "tools.ToolA.property0":
+                        print("else")
                     set_val[k] = {}
                     set_val = set_val[k]
             except TypeError:
@@ -86,6 +91,13 @@ class DotDict(dict):
         self.dot_expand()
         return self
 
+    def expand_and_resolve(self) -> dict:
+        """Attempts to flatten, resolve, and then expand dictionary"""
+        self.flatten()
+        self.resolve()
+        self.dot_expand()
+        return self
+
     def dot_expand(self):
         """Does a single layer expansion assuming dictionary is flat"""
         for key, value in sorted(self.items()):
@@ -100,4 +112,9 @@ class DotDict(dict):
             self.delete_key(old_keys)
             flat_dict[flat_key] = value
         self.update(flat_dict)
+        return self
+
+    # TODO implement me
+    def resolve(self) -> dict:
+        """If values are dot string keys then tries to resolve dot strings"""
         return self

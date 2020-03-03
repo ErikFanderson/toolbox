@@ -7,6 +7,7 @@
 
 # Imports - standard library
 from typing import Tuple, Any
+import copy
 
 # Imports - 3rd party packages
 
@@ -22,7 +23,13 @@ class Database:
     def load_dict(self, dictionary: dict) -> None:
         """Adds to internal database using a dict object
         :param dictionary Dict to be loaded into database
+        WARNING! RUTHLESSLY OVERWRITES DATA
         """
+        db = copy.deepcopy(dictionary)
+        db = DotDict(db).flatten()
+        for key, value in db.items():
+            self._db.set_via_dot_string(key, value)
+
     def load_yml(self, fname: str) -> None:
         """Adds to internal database using yaml files
         :param fname filename for the yaml config file
@@ -34,6 +41,6 @@ class Database:
         value as second arg
         """
         try:
-            return (True, self._db[field])
+            return (True, self._db.get_via_dot_string(field))
         except KeyError:
             return (False, None)
