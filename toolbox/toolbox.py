@@ -290,6 +290,7 @@ class ToolBox(Database):
         def log_step(msg: str, step: str, level: LogLevel) -> None:
             prefix = f"[{self.get_db('internal.args.job')}] [{task.tool}] [{step}] [%(levelname)s]"
             self.log(msg, level, prefix)
+
         # Run steps within task [job] [tool] [step]
         for step in tool.steps():
             log_fn = lambda msg, level: log_step(
