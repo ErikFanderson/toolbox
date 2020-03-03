@@ -131,7 +131,7 @@ class ToolBox(Database):
                         f'Invalid value for property "{dot_str}".\nDescription: {descr}{err_msg}'
                     )
         # Check jobs
-        self.validate_db('toolbox/schemas/jobs.yml')
+        self.validate_db(str(self._home_dir / 'toolbox/schemas/jobs.yml'))
 
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
