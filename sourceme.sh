@@ -18,3 +18,6 @@ fi
 
 # Set TOOLBOX_HOME variable
 export TOOLBOX_HOME=$PWD
+
+# Add to path
+export PATH=$TOOLBOX_HOME/bin:$PATH
