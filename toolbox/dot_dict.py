@@ -116,7 +116,11 @@ class DotDict(dict):
 
     def resolve(self):
         """Runs resolve item on itself"""
-        self.resolve_item(self, re.compile(r"\${([a-zA-Z0-9\.]+)}"))
+        try:
+            self.resolve_item(self, re.compile(r"\${([a-zA-Z0-9\._]+)}"))
+        except RecursionError:
+            raise DictError("""Maximum recursion depth reached.
+There is most likely a circular reference present""")
 
     def resolve_item(self, item: Any, regex: Pattern) -> Any:
         """If values are dot string keys then tries to resolve dot strings
@@ -135,9 +139,13 @@ class DotDict(dict):
             matches = regex.findall(item)
             if matches:
                 res_items = []
-                for match in matches:
-                    r = self.resolve_item(self.get_via_dot_string(match), regex)
-                    res_items.append(r)
+                try:
+                    for match in matches:
+                        r = self.resolve_item(self.get_via_dot_string(match),
+                                              regex)
+                        res_items.append(r)
+                except KeyError:
+                    raise DictError(f'Item "{match}" not found.')
                 # Check that they are all strings if there are multiple matches
                 if len(res_items) > 1:
                     for res in res_items:
@@ -146,7 +154,8 @@ class DotDict(dict):
                         item = regex.sub(res, item, 1)
                 # If a single item then just resolve it
                 elif len(res_items) == 1:
-                    if isinstance(res_items[0], dict) or isinstance(res_items[0], list):
+                    if isinstance(res_items[0], dict) or isinstance(
+                            res_items[0], list):
                         item = self.resolve_item(res_items[0], regex)
                     elif isinstance(res_items[0], str):
                         item = regex.sub(res_items[0], item, 1)
@@ -156,6 +165,6 @@ class DotDict(dict):
             for i, element in enumerate(item):
                 item[i] = self.resolve_item(element, regex)
         elif isinstance(item, dict):
-            for key,value in item.items():
+            for key, value in item.items():
                 item[key] = self.resolve_item(value, regex)
         return item

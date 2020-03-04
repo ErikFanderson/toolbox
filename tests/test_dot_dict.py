@@ -17,19 +17,25 @@ from toolbox.path_helper import PathHelper
 from toolbox.logger import LogLevel, LoggerParams
 from toolbox.dot_dict import DotDict, DictError
 
+
 def test_resolution():
     """Test to make sure that resolution is properly handled"""
     unresolved = DotDict({
         "zero": {
             "one": {
                 "two": {
-                    "three": 4,
-                    "four": "${zero.one.two.three}",
-                    "five": "${zero.one.two.four}",
-                    "six": "six string",
+                    "three":
+                    4,
+                    "four":
+                    "${zero.one.two.three}",
+                    "five":
+                    "${zero.one.two.four}",
+                    "six":
+                    "six string",
                     "seven": [
-                    "${zero.one.two.five}",
-                    {"dict_in_list":"${zero.one.two.six}"}
+                        "${zero.one.two.five}", {
+                            "dict_in_list": "${zero.one.two.six}"
+                        }
                     ]
                 }
             }
@@ -44,42 +50,87 @@ def test_resolution():
                     "four": 4,
                     "five": 4,
                     "six": "six string",
-                    "seven": [4, {"dict_in_list": "six string"}]
+                    "seven": [4, {
+                        "dict_in_list": "six string"
+                    }]
                 }
             }
         },
-        "eight": [4, {"dict_in_list": "six string"}]
+        "eight": [4, {
+            "dict_in_list": "six string"
+        }]
     })
     attempt = unresolved.expand_and_resolve()
     print(attempt)
-    assert(attempt == resolved.expand())
+    assert (attempt == resolved.expand())
+
 
 def test_circular_resolution():
     """Test to make sure that circular reference is handled"""
-    #unresolved = {"one.two": "test", "one": {"three": "${one.two}"}}
-    #resolved = {"one": {"two": "test", "three": "${one.two}"}}
-    pass
+    unresolved = DotDict({
+        "one.two": "${one.three}",
+        "one": {
+            "three": "${one.two}"
+        }
+    })
+    with pytest.raises(DictError):
+        unresolved.expand_and_resolve()
+
+
+def test_nonexistent_resolution():
+    """Test to make sure that nonexistent reference is handled"""
+    unresolved = DotDict({"one.two": "${one.three}"})
+    with pytest.raises(DictError):
+        unresolved.expand_and_resolve()
+
 
 def test_resolve_cat():
     """Test to make sure that circular reference is handled"""
     # Simple
-    unresolved = DotDict({"one.two": "test", "one.five": "${one.four}", "one.four": "${one.two}", "one": {"three": "${one.four}"}})
-    resolved = DotDict({"one": {"two": "test", "three": "test", "four": "test", "five": "test"}})
+    unresolved = DotDict({
+        "one.two": "test",
+        "one.five": "${one.four}",
+        "one.four": "${one.two}",
+        "one": {
+            "three": "${one.four}"
+        }
+    })
+    resolved = DotDict({
+        "one": {
+            "two": "test",
+            "three": "test",
+            "four": "test",
+            "five": "test"
+        }
+    })
     unresolved.expand_and_resolve()
     print(unresolved)
-    assert(unresolved == resolved)
+    assert (unresolved == resolved)
     # Cat one string to another
-    unresolved = DotDict({"one.two": "test", "one": {"three": "${one.two}_test"}})
+    unresolved = DotDict({
+        "one.two": "test",
+        "one": {
+            "three": "${one.two}_test"
+        }
+    })
     resolved = DotDict({"one": {"two": "test", "three": "test_test"}})
     attempt = unresolved.expand_and_resolve()
     print(attempt)
-    assert(unresolved == resolved)
+    assert (unresolved == resolved)
     # Cat two resolutions
-    unresolved = DotDict({"one": "${two}/${three}", "two": "first", "three": "second"})
-    resolved = DotDict({"one": "first/second", "two": "first", "three": "second"})
+    unresolved = DotDict({
+        "one": "${two}/${three}",
+        "two": "first",
+        "three": "second"
+    })
+    resolved = DotDict({
+        "one": "first/second",
+        "two": "first",
+        "three": "second"
+    })
     attempt = unresolved.expand_and_resolve()
     print(attempt)
-    assert(unresolved == resolved)
+    assert (unresolved == resolved)
 
 
 def test_dot_dict_redefinition():

@@ -97,6 +97,7 @@ class ToolBox(Database):
         configs = self.check_files(self.get_db('internal.args.config'))
         for config in configs:
             self.load_config(config)
+        self._db.resolve()
 
     def load_config(self, config: Union[str, Path]):
         """Method for loading config to db. Exists in case this
@@ -277,6 +278,7 @@ class ToolBox(Database):
         if task.additional_configs:
             for config in task.additional_configs:
                 self.load_config(config)
+        self._db.resolve()
         self.check_db()
         # Import in tool (using absolute path??)
         tool_path = Path(self.get_db(f"internal.tools.{task.tool}.path"))
