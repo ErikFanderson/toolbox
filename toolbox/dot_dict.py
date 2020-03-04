@@ -7,8 +7,10 @@
 
 # Imports - standard library
 from typing import Tuple, Optional, NamedTuple, Any, Callable, List
+from typing import Pattern
 import copy
 import sys
+import re
 
 # Imports - 3rd party packages
 
@@ -92,8 +94,8 @@ class DotDict(dict):
     def expand_and_resolve(self) -> dict:
         """Attempts to flatten, resolve, and then expand dictionary"""
         self.flatten()
-        self.resolve()
         self.dot_expand()
+        self.resolve()
         return self
 
     def dot_expand(self):
@@ -112,7 +114,48 @@ class DotDict(dict):
         self.update(flat_dict)
         return self
 
-    # TODO implement me
-    def resolve(self) -> dict:
-        """If values are dot string keys then tries to resolve dot strings"""
-        return self
+    def resolve(self):
+        """Runs resolve item on itself"""
+        self.resolve_item(self, re.compile(r"\${([a-zA-Z0-9\.]+)}"))
+
+    def resolve_item(self, item: Any, regex: Pattern) -> Any:
+        """If values are dot string keys then tries to resolve dot strings
+        :param item Item to be resolved.
+        :param regex Regular expression to be used to find variables to resolve
+        :return Returns the resolved item
+        TODO make it okay to concatenate objects as long as they have same type?
+        TODO Add in circular reference check
+        TODO May need to update regex passed in from resolve... Might need
+        some up front checks on the keys passed to toolbox to make sure
+        only valid characters are used.
+        """
+        # Perform resolution
+        if isinstance(item, str):
+            # Check for Match
+            matches = regex.findall(item)
+            if matches:
+                res_items = []
+                for match in matches:
+                    r = self.resolve_item(self.get_via_dot_string(match), regex)
+                    res_items.append(r)
+                # Check that they are all strings if there are multiple matches
+                if len(res_items) > 1:
+                    for res in res_items:
+                        if not isinstance(res, str):
+                            raise DictError("Can only concatenate strings!")
+                        item = regex.sub(res, item, 1)
+                # If a single item then just resolve it
+                elif len(res_items) == 1:
+                    if isinstance(res_items[0], dict) or isinstance(res_items[0], list):
+                        item = self.resolve_item(res_items[0], regex)
+                    elif isinstance(res_items[0], str):
+                        item = regex.sub(res_items[0], item, 1)
+                    else:
+                        item = res_items[0]
+        elif isinstance(item, list):
+            for i, element in enumerate(item):
+                item[i] = self.resolve_item(element, regex)
+        elif isinstance(item, dict):
+            for key,value in item.items():
+                item[key] = self.resolve_item(value, regex)
+        return item

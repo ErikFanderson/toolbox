@@ -17,7 +17,7 @@ type:
 
 # Runs all tests in tests directory
 test:
-	pytest
+	pytest -v
 
 # Runs ctags 
 tags:
