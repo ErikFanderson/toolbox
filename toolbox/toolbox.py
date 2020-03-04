@@ -74,7 +74,7 @@ class ToolBox(Database):
         self._load_dict({"internal.args": args.__dict__})
         self._load_dict({"internal.home_dir": str(home_dir)})
         self._load_dict({"internal.work_dir": str(Path('.').resolve())})
-        self._job_dir = self.make_build_dir()
+        self._load_dict({"internal.job_dir": self.make_build_dir()})
         # Populate Database
         self.populate_database()
 
@@ -204,7 +204,7 @@ class ToolBox(Database):
                 Path(self.get_db("internal.args.symlink")))
             Path(self.get_db("internal.args.symlink")).symlink_to(
                 build_dir.parents[1], target_is_directory=True)
-        return build_dir
+        return str(build_dir)
 
     def validate_tools_file(self, fname: str) -> List[Path]:
         """Validates the tools file
@@ -276,7 +276,7 @@ class ToolBox(Database):
         # Copy log file to build directory
         shutil.copy(
             self.get_db("internal.args.log_params").out_fname,
-            str(self._job_dir))
+            str(self.get_db('internal.job_dir')))
 
     def run_task(self, task: Task) -> None:
         """Runs the task (i.e. subcomponent of a job)"""

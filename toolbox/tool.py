@@ -6,10 +6,12 @@
 """Docstring for module tool"""
 
 # Imports - standard library
+import os
 from abc import ABC, abstractmethod
 from typing import List, Callable, Any
 from pathlib import Path
-import os
+import getpass
+from datetime import datetime
 
 # Imports - 3rd party packages
 from jinja2 import StrictUndefined, FileSystemLoader, Environment
@@ -51,11 +53,20 @@ class Tool(ABC):
         :param template_fname filename of jinja template
         :param output_fname filename of output file
         '''
+        # Load any additional template directories
+        dirs = [os.path.join(self.path, 'templates')]
+        if 'additional_template_dirs' in kwargs:
+            dirs += kwargs['additional_template_dirs']
+            del kwargs['additional_template_dirs']
+        # Open template and read
         with open(template_fname, 'r') as fp:
-            fsl = FileSystemLoader(os.path.join(self.path, 'templates'))
+            fsl = FileSystemLoader(dirs)
             template = Environment(
                 loader=fsl, undefined=StrictUndefined).from_string(fp.read())
-        out = template.render(kwargs)
+        # Render template and output to file
+        uname = getpass.getuser()
+        date = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
+        out = template.render(kwargs, uname=uname, date=date)
         with open(output_fname, 'w') as fp:
             fp.write(out)
 
