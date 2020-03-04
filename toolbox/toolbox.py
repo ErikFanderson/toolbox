@@ -66,11 +66,14 @@ class ToolBox(Database):
         self._logger = Logger(args.log_params)
         self.log = self._logger.log
         # Ensure that home directory is set
-        self._home_dir = PathHelper.check_dir(os.getenv('TOOLBOX_HOME'))
-        if self._home_dir is None:
+        home_dir = PathHelper.check_dir(os.getenv('TOOLBOX_HOME'))
+        if home_dir is None:
             self.exit('TOOLBOX_HOME variable not set or incorrectly set.')
         # Load internal.args and make build directory
+        self._load_dict({"internal.command": ' '.join(sys.argv[1:])})
         self._load_dict({"internal.args": args.__dict__})
+        self._load_dict({"internal.home_dir": str(home_dir)})
+        self._load_dict({"internal.work_dir": str(Path('.').resolve())})
         self._job_dir = self.make_build_dir()
         # Populate Database
         self.populate_database()
@@ -132,7 +135,9 @@ class ToolBox(Database):
                         f'Invalid value for property "{dot_str}".\nDescription: {descr}{err_msg}'
                     )
         # Check jobs
-        self.validate_db(str(self._home_dir / 'toolbox/schemas/jobs.yml'))
+        self.validate_db(
+            os.path.join(self.get_db('internal.home_dir'),
+                         'toolbox/schemas/jobs.yml'))
 
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
@@ -211,7 +216,8 @@ class ToolBox(Database):
         if tool_file is None:
             self.exit(f'Cannot find tool file "{fname}"')
         schema_file = self.check_file(
-            str(self._home_dir / "toolbox/schemas/tools.yml"))
+            os.path.join(self.get_db('internal.home_dir'),
+                         "toolbox/schemas/tools.yml"))
         # Validate tool config
         tool_config = self.validate_yaml(str(tool_file), str(schema_file))
         # Exit if no valid tools found
@@ -249,7 +255,9 @@ class ToolBox(Database):
                 f'Tool at path "{tool_path}" does not contain required tool.yml file.'
             )
         yml = self.validate_yaml(
-            str(tool_yml), str(self._home_dir / 'toolbox/schemas/tool.yml'))
+            str(tool_yml),
+            os.path.join(self.get_db('internal.home_dir'),
+                         'toolbox/schemas/tool.yml'))
         # Save name but delete from base dict
         tool_name = yml["name"]
         del yml["name"]
@@ -285,7 +293,7 @@ class ToolBox(Database):
         sys.path.insert(1, str(tool_path.parent))
         tool_module = importlib.import_module(tool_path.stem)
         ToolClass = getattr(tool_module, task.tool)
-        tool = ToolClass(self._db, self.log)
+        tool = ToolClass(self, self.log)
         if not isinstance(tool, Tool):
             self.exit(f'Tool "{task.tool}" is not a sub-class of Tool.')
         # Log step function for steps
