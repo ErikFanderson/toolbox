@@ -19,6 +19,13 @@ from toolbox.dot_dict import DotDict, DictError
 
 
 # TODO implement me
+def test_additional_configs():
+    """Checks to makes sure additional configs are loaded correctly"""
+    # Check that configs are actually loaded
+    # check to make sure that database is restored to original state after each task
+
+
+# TODO implement me
 def test_no_configs_passed():
     """Checks to makes sure works if no configs are passed"""
 

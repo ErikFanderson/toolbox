@@ -279,14 +279,18 @@ class ToolBox(Database):
 
     def run_task(self, task: Task) -> None:
         """Runs the task (i.e. subcomponent of a job)"""
-        self.log(f'Starting task "{task.tool}" of job "{self.get_db("internal.args.job")}".')
+        self.log(
+            f'Starting task "{task.tool}" of job "{self.get_db("internal.args.job")}".'
+        )
         # Save current state of database
         original_db = copy.deepcopy(self._db)
         # Load in additional configs and rerun db validation
         if task.additional_configs:
             for config in task.additional_configs:
                 self.load_config(config)
-                self.log(f'Additional configuration file "{config}" successfully loaded.')
+                self.log(
+                    f'Additional configuration file "{config}" successfully loaded.'
+                )
         self._db.resolve()
         self.check_db(task.tool)
         # Import in tool (using absolute path??)
