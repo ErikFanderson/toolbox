@@ -104,9 +104,9 @@ class BinaryDriver:
         options = ' '.join(self.__options)
         return f"{self.__binary} {options}"
 
-    def execute(self) -> str:
+    def execute(self, directory: str = None) -> str:
         """Actually executes"""
-        return subprocess.run([self.__binary] + self.__options)
+        return subprocess.run([self.__binary] + self.__options, cwd=directory)
 
 
 class Anything(Validator):
