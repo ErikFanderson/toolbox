@@ -13,7 +13,6 @@ import pytest
 
 # Imports - local source
 from toolbox.toolbox import ToolBox, ToolBoxParams
-from toolbox.path_helper import PathHelper
 from toolbox.logger import LogLevel, LoggerParams
 from toolbox.dot_dict import DotDict, DictError
 
@@ -103,3 +102,4 @@ def test_tool_validate():
                          log_params=LoggerParams(LogLevel.DEBUG),
                          job='example_job')
     tb = ToolBox(args)
+    tb.execute()

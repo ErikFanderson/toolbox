@@ -25,7 +25,7 @@ from yamale.schema.schema import Schema
 
 # Imports - local source
 from .logger import Logger, LogLevel, LoggerParams
-from .path_helper import PathHelper
+from .utils import *
 from .dot_dict import DotDict
 from .database import Database
 from .tool import Tool
@@ -66,7 +66,7 @@ class ToolBox(Database):
         self._logger = Logger(args.log_params)
         self.log = self._logger.log
         # Ensure that home directory is set
-        home_dir = PathHelper.check_dir(os.getenv('TOOLBOX_HOME'))
+        home_dir = check_dir(os.getenv('TOOLBOX_HOME'))
         if home_dir is None:
             self.exit('TOOLBOX_HOME variable not set or incorrectly set.')
         # Load internal.args and make build directory
@@ -111,7 +111,7 @@ class ToolBox(Database):
 
     def validate_db(self, fname):
         """Runs database against schema in file fname"""
-        err_msg = PathHelper.yamale_validate_dict_with_file(self._db, fname)
+        err_msg = Validator.yamale_validate_dict_with_file(self._db, fname)
         if isinstance(err_msg, str):
             self.exit(f"Error validating internal database.{err_msg}")
 
@@ -127,7 +127,7 @@ class ToolBox(Database):
             dot_str = f"tools.{tool_name}.{prop_name}"
             data = {f"{prop_name}": self.get_db(dot_str)}
             schema = {f"{prop_name}": prop["schema"]}
-            err_msg = PathHelper.yamale_validate_dicts(data, schema)
+            err_msg = Validator.yamale_validate_dicts(data, schema)
             if isinstance(err_msg, str):
                 descr = prop["description"]
                 self.exit(
@@ -140,14 +140,14 @@ class ToolBox(Database):
 
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
-        checked_file = PathHelper.check_file(fname)
+        checked_file = check_file(fname)
         if checked_file is None:
             self.log(f'"{fname}" is not a valid file.', LogLevel.WARNING)
         return checked_file
 
     def check_dir(self, directory: str) -> Optional[Path]:
         """Checks a single directory"""
-        checked_dir = PathHelper.check_dir(directory)
+        checked_dir = check_dir(directory)
         if checked_dir is None:
             self.log(f'"{directory}" is not a valid directory.',
                      LogLevel.WARNING)
@@ -169,7 +169,7 @@ class ToolBox(Database):
 
     def validate_yaml(self, yaml_fname: str, schema_fname: str):
         """Checks to see if output is an error message and exits if it is"""
-        config = PathHelper.yamale_validate_files(yaml_fname, schema_fname)
+        config = Validator.yamale_validate_files(yaml_fname, schema_fname)
         if isinstance(config, str):
             self.exit(config)
         return config
@@ -195,12 +195,11 @@ class ToolBox(Database):
             "internal.args.job") / date_str
         build_dir = build_dir.resolve()
         build_dir.mkdir(parents=True, exist_ok=True)
-        PathHelper.unlink_missing_ok(build_dir.parent / 'current')
+        unlink_missing_ok(build_dir.parent / 'current')
         (build_dir.parent / 'current').symlink_to(build_dir,
                                                   target_is_directory=True)
         if self.get_db("internal.args.symlink"):
-            PathHelper.unlink_missing_ok(
-                Path(self.get_db("internal.args.symlink")))
+            unlink_missing_ok(Path(self.get_db("internal.args.symlink")))
             Path(self.get_db("internal.args.symlink")).symlink_to(
                 build_dir.parents[1], target_is_directory=True)
         return str(build_dir)
@@ -273,9 +272,10 @@ class ToolBox(Database):
     def cleanup(self):
         """Performs any actions required before exiting program"""
         # Copy log file to build directory
-        shutil.copy(
-            self.get_db("internal.args.log_params").out_fname,
-            str(self.get_db('internal.job_dir')))
+        if self.get_db("internal.args.log_params").out_fname:
+            shutil.copy(
+                self.get_db("internal.args.log_params").out_fname,
+                str(self.get_db('internal.job_dir')))
 
     def run_task(self, task: Task) -> None:
         """Runs the task (i.e. subcomponent of a job)"""
