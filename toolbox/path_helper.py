@@ -9,6 +9,7 @@
 from typing import Tuple, Callable, Optional, List, Any, Union
 from pathlib import Path
 import sys
+import subprocess
 
 # Imports - 3rd party packages
 import yaml
@@ -17,7 +18,29 @@ from yamale.validators import DefaultValidators, Validator
 from yamale.schema import Schema
 
 # Imports - local source
-#from logger import LogLevel, Logger
+
+
+class BinaryDriver:
+    def __init__(self, binary: str):
+        """Initialize with name of path to binary"""
+        self.__binary = binary
+        self.__options = []
+
+    def add_option(self, value=None, flag=None):
+        """Adds an option to the options list"""
+        if value or flag:
+            value = str(value).strip() if value else ''
+            flag = str(flag).strip() if flag else ''
+            self.__options.append(f"{flag} {value}".strip())
+
+    def get_execute_string(self) -> str:
+        """Returns the call to the executable"""
+        options = ' '.join(self.__options)
+        return f"{self.__binary} {options}"
+
+    def execute(self) -> str:
+        """Actually executes"""
+        return subprocess.run([self.__binary] + self.__options)
 
 
 class Anything(Validator):

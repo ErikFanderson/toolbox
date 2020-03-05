@@ -13,9 +13,19 @@ import pytest
 
 # Imports - local source
 from toolbox.toolbox import ToolBox, ToolBoxParams
-from toolbox.path_helper import PathHelper
+from toolbox.path_helper import PathHelper, BinaryDriver
 from toolbox.logger import LogLevel, LoggerParams
 from toolbox.dot_dict import DotDict, DictError
+
+
+def test_bin_driver():
+    """Checks binary driver functions"""
+    binary = BinaryDriver("binary/path")
+    binary.add_option(value="option", flag='--flag')
+    binary.add_option(value=None, flag='-switch')
+    binary.add_option(value="positional", flag=None)
+    assert (binary.get_execute_string() ==
+            'binary/path --flag option -switch positional')
 
 
 def test_path_helper():
