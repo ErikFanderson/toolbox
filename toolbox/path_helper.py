@@ -8,7 +8,6 @@
 # Imports - standard library
 from typing import Tuple, Callable, Optional, List, Any, Union
 from pathlib import Path
-import json
 import sys
 
 # Imports - 3rd party packages
@@ -16,7 +15,6 @@ import yaml
 import yamale
 from yamale.validators import DefaultValidators, Validator
 from yamale.schema import Schema
-import jsonschema
 
 # Imports - local source
 #from logger import LogLevel, Logger
