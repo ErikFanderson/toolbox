@@ -25,7 +25,7 @@ import yamale
 from yamale.schema.schema import Schema
 
 # Imports - local source
-from .logger import Logger, LogLevel, LoggerParams
+from .logger import Logger, HasLogFunction, LogLevel, LoggerParams
 from .utils import *
 from .dot_dict import DotDict
 from .database import Database
@@ -58,14 +58,14 @@ class ToolBoxParams:
     job: str
 
 
-class ToolBox(Database):
+class ToolBox(Database, HasLogFunction):
     """Coordinates the running of tools and jobs"""
     def __init__(self, args: ToolBoxParams) -> None:
         """Inializes project manager with global namespace from args list"""
         super().__init__("internal")
         # Create logger and log function
         self._logger = Logger(args.log_params)
-        self.log = self._logger.log
+        self._log = self._logger.log
         # Ensure that home directory is set
         home_dir = check_dir(os.getenv('TOOLBOX_HOME'))
         if home_dir is None:
@@ -89,6 +89,13 @@ class ToolBox(Database):
         self.validate_db(
             os.path.join(self.get_db('internal.home_dir'),
                          'toolbox/schemas/jobs.yml'))
+
+    def log(self,
+            msg: str,
+            level: LogLevel = LogLevel.INFO,
+            prefix: Optional[str] = None) -> None:
+        """Function for logging information"""
+        self._log(msg, level)
 
     def load_tools(self):
         """Loads tools and schemas into database"""
@@ -120,30 +127,6 @@ class ToolBox(Database):
         err_msg = Validator.yamale_validate_dict_with_file(self._db, fname)
         if isinstance(err_msg, str):
             raise ToolBoxError(f"Error validating internal database.{err_msg}")
-
-    def check_file(self, fname: str) -> Optional[Path]:
-        """Checks a single file"""
-        log_fn = lambda f: self.log(f'"{f}" is not a valid file.', LogLevel.
-                                    WARNING)
-        return check_file(fname, log_fn)
-
-    def check_dir(self, directory: str) -> Optional[Path]:
-        """Checks a single directory"""
-        log_fn = lambda d: self.log(f'"{d}" is not a valid directory.',
-                                    LogLevel.WARNING)
-        return check_dir(directory, log_fn)
-
-    def check_files(self, fnames: List[str]) -> List[Path]:
-        """Check files function but with added logging"""
-        log_fn = lambda f: self.log(f'"{f}" is not a valid file.', LogLevel.
-                                    WARNING)
-        return check_files(fnames, log_fn)
-
-    def check_dirs(self, dirs: List[str]) -> List[Path]:
-        """Check files function but with added logging"""
-        log_fn = lambda d: self.log(f'"{d}" is not a valid directory.',
-                                    LogLevel.WARNING)
-        return check_dirs(dirs, log_fn)
 
     def validate_yaml(self, yaml_fname: str, schema_fname: str):
         """Checks to see if output is an error message and exits if it is"""

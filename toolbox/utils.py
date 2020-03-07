@@ -55,7 +55,7 @@ def check_file(fname: str, action: Optional[Callable[[str], Any]] = None
                ) -> Optional[Path]:
     """Checks to see if file exists"""
     f = check_and_resolve(fname, files=True, dirs=False)
-    if f and action is not None:
+    if not f and action is not None:
         action(fname)
     return f
 
@@ -64,7 +64,7 @@ def check_dir(directory: str,
               action: Optional[Callable[[str], Any]] = None) -> Optional[Path]:
     """Checks to see if dir exists"""
     d = check_and_resolve(directory, files=False, dirs=True)
-    if d and action is not None:
+    if not d and action is not None:
         action(directory)
     return d
 

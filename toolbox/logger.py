@@ -10,11 +10,14 @@ from dataclasses import dataclass
 from enum import Enum
 import logging
 from logging import Formatter
-from typing import Optional
+from typing import Optional, List
+from abc import ABC, abstractmethod
+from pathlib import Path
 
 # Imports - 3rd party packages
 
 # Imports - local source
+from .utils import *
 
 
 class LogLevel(Enum):
@@ -36,6 +39,47 @@ class LoggerParams:
     out_fname: Optional[str] = None
     name: str = "default"
     formatter: str = "[%(asctime)s] [%(threadName)s] [%(levelname)s] %(message)s"
+
+
+class HasLogFunction(ABC):
+    """A mix-in that requires self.log. Provides basic utility functions."""
+    @abstractmethod
+    def log(self,
+            msg: str,
+            level: LogLevel = LogLevel.INFO,
+            prefix: Optional[str] = None) -> None:
+        """Required log function"""
+    def check_file(self, fname: str) -> Optional[Path]:
+        """Checks a single file"""
+        log_fn = lambda f: self.log(f'"{f}" is not a valid file.', LogLevel.
+                                    WARNING)
+        return check_file(fname, log_fn)
+
+    def check_dir(self, directory: str) -> Optional[Path]:
+        """Checks a single directory"""
+        log_fn = lambda d: self.log(f'"{d}" is not a valid directory.',
+                                    LogLevel.WARNING)
+        return check_dir(directory, log_fn)
+
+    def check_files(self, fnames: List[str]) -> List[Path]:
+        """Check files function but with added logging"""
+        log_fn = lambda f: self.log(f'"{f}" is not a valid file.', LogLevel.
+                                    WARNING)
+        return check_files(fnames, log_fn)
+
+    def check_dirs(self, dirs: List[str]) -> List[Path]:
+        """Check files function but with added logging"""
+        log_fn = lambda d: self.log(f'"{d}" is not a valid directory.',
+                                    LogLevel.WARNING)
+        return check_dirs(dirs, log_fn)
+
+
+def unlink_missing_ok(dirname: Path) -> None:
+    ''' Unlinks directory if it exists '''
+    try:
+        (dirname).unlink()
+    except FileNotFoundError:
+        pass
 
 
 class Logger:
