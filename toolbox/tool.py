@@ -8,7 +8,7 @@
 # Imports - standard library
 import os
 from abc import ABC, abstractmethod
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Optional
 from pathlib import Path
 import getpass
 from datetime import datetime
@@ -18,7 +18,7 @@ from jinja2 import StrictUndefined, FileSystemLoader, Environment
 
 # Imports - local source
 from .database import Database
-from .logger import LogLevel
+from .logger import LogLevel, HasLogFunction
 from .utils import Validator
 
 
@@ -26,8 +26,11 @@ class ToolError(Exception):
     """Error to show that tool implementation has hit exception"""
 
 
-class Tool(ABC):
-    """Base class that all tools must inherit from"""
+class Tool(HasLogFunction):
+    """Base class that all tools must inherit from
+    Inherits from HasLogFunction which is an abstract class
+    Originally the Tool just inherited from ABC
+    """
     def __init__(self, db: Database, log: Callable[[str, LogLevel], None]):
         """Just sets the database"""
         self._db = db
@@ -65,7 +68,7 @@ class Tool(ABC):
         """For changing the logging functionality between steps"""
         self._log = log
 
-    def log(self, msg: str, level: LogLevel = LogLevel.INFO):
+    def log(self, msg: str, level: LogLevel = LogLevel.INFO) -> None:
         """Function for logging information"""
         self._log(msg, level)
 
