@@ -28,48 +28,49 @@ def unlink_missing_ok(dirname: Path) -> None:
         pass
 
 
-def check_files(fnames: List[str]) -> Optional[List[Path]]:
+def check_files(fnames: List[str],
+                action: Optional[Callable[[str], Any]] = None
+                ) -> Optional[List[Path]]:
     """Checks to see if files exist"""
-    return check_and_resolve(fnames, files=True, dirs=False)
+    if fnames:
+        checked_fnames = [check_file(fname, action) for fname in fnames]
+        return_files = [fname for fname in checked_fnames if fname]
+        if return_files:
+            return return_files
+    return None
 
 
-def check_dirs(directories: List[str]) -> Optional[List[Path]]:
+def check_dirs(dirs: List[str], action: Optional[Callable[[str], Any]] = None
+               ) -> Optional[List[Path]]:
     """Checks to see if dir exists"""
-    return check_and_resolve(directories, files=False, dirs=True)
+    if dirs:
+        checked_dirs = [check_dir(directory, action) for directory in dirs]
+        return_dirs = [directory for directory in checked_dirs if directory]
+        if return_dirs:
+            return return_dirs
+    return None
 
 
-def check_file(fname: str) -> Optional[Path]:
+def check_file(fname: str, action: Optional[Callable[[str], Any]] = None
+               ) -> Optional[Path]:
     """Checks to see if file exists"""
-    return check_and_resolve_single(fname, files=True, dirs=False)
+    f = check_and_resolve(fname, files=True, dirs=False)
+    if f and action is not None:
+        action(fname)
+    return f
 
 
-def check_dir(directory: str) -> Optional[Path]:
+def check_dir(directory: str,
+              action: Optional[Callable[[str], Any]] = None) -> Optional[Path]:
     """Checks to see if dir exists"""
-    return check_and_resolve_single(directory, files=False, dirs=True)
+    d = check_and_resolve(directory, files=False, dirs=True)
+    if d and action is not None:
+        action(directory)
+    return d
 
 
-def check_and_resolve(rel_paths: List[str], files: bool,
-                      dirs: bool) -> Optional[List[Path]]:
-    '''Checks and resolves a list of dirs, files, or files and dirs
-    :param rel_paths List of relative paths to check
-    :param files Checks to see if rel_path is a file
-    :param dirs Checks to see whether rel_path is a directory
-    :return Either a list of Path objects or None
-    '''
-    if rel_paths:
-        resolved_paths = []
-        for i, path in enumerate(rel_paths):
-            rp = check_and_resolve_single(path, files, dirs)
-            if rp is not None:
-                resolved_paths.append(rp)
-    if resolved_paths == []:
-        return None
-    else:
-        return resolved_paths
-
-
-def check_and_resolve_single(rel_path: str, files: bool,
-                             dirs: bool) -> Optional[Path]:
+def check_and_resolve(rel_path: str, files: bool,
+                      dirs: bool) -> Optional[Path]:
     '''Checks and resolves a single dir or file
     :param rel_paths List of relative paths to check
     :param files Checks to see if rel_path is a file

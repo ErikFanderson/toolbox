@@ -28,7 +28,8 @@ def test_bin_driver():
             'binary/path --flag option -switch positional')
 
 
-def test_path_helper():
+def test_single_file_and_dir_check():
+    """Checks single files and directories"""
     # Single checks
     f = check_file(__file__)
     print(f"File [True]: {f}")
@@ -42,7 +43,10 @@ def test_path_helper():
     d = check_dir(str(check_file(__file__).parent))
     print(f"Directory [True]: {d}")
     assert (d is not None)
-    # List checks
+
+
+def test_list_of_file_and_dir_check():
+    """Checks list of files and directories"""
     f = check_files([__file__, __file__])
     print(f"Files [True]: {f}")
     assert (f is not None and len(f) == 2)
