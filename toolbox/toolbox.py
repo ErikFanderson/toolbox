@@ -17,6 +17,7 @@ import shutil
 import re
 import copy
 import importlib
+import atexit
 
 # Imports - 3rd party packages
 import yaml
@@ -68,7 +69,8 @@ class ToolBox(Database):
         # Ensure that home directory is set
         home_dir = check_dir(os.getenv('TOOLBOX_HOME'))
         if home_dir is None:
-            self.exit('TOOLBOX_HOME variable not set or incorrectly set.')
+            raise ToolBoxError(
+                'TOOLBOX_HOME variable not set or incorrectly set.')
         # Load internal.args and make build directory
         self._load_dict({"internal.command": ' '.join(sys.argv[1:])})
         self._load_dict({"internal.args": args.__dict__})
@@ -77,12 +79,16 @@ class ToolBox(Database):
         self._load_dict({"internal.job_dir": self.make_build_dir()})
         # Populate Database
         self.populate_database()
+        atexit.register(self.exit)
 
     def populate_database(self) -> dict:
         """Generates global database from config files and args"""
         self.load_tools()
         self.load_configs()
-        #self.check_db()
+        # Check jobs - Validate yaml and check that each tool is found in tools file
+        self.validate_db(
+            os.path.join(self.get_db('internal.home_dir'),
+                         'toolbox/schemas/jobs.yml'))
 
     def load_tools(self):
         """Loads tools and schemas into database"""
@@ -113,30 +119,7 @@ class ToolBox(Database):
         """Runs database against schema in file fname"""
         err_msg = Validator.yamale_validate_dict_with_file(self._db, fname)
         if isinstance(err_msg, str):
-            self.exit(f"Error validating internal database.{err_msg}")
-
-    def check_db(self, tool_name: str):
-        """Checks database against default and provided schemas
-        To be run after loading tools, configs, and performing resolution
-        # TODO ultimately this should be rewritten to not perform validation
-        serially... Construct large schema and run on entire database
-        """
-        # Check tool properties
-        tool = self.get_db(f"internal.tools.{tool_name}")
-        for prop_name, prop in tool['properties'].items():
-            dot_str = f"tools.{tool_name}.{prop_name}"
-            data = {f"{prop_name}": self.get_db(dot_str)}
-            schema = {f"{prop_name}": prop["schema"]}
-            err_msg = Validator.yamale_validate_dicts(data, schema)
-            if isinstance(err_msg, str):
-                descr = prop["description"]
-                self.exit(
-                    f'Invalid value for property "{dot_str}".\nDescription: {descr}{err_msg}'
-                )
-        # Check jobs
-        self.validate_db(
-            os.path.join(self.get_db('internal.home_dir'),
-                         'toolbox/schemas/jobs.yml'))
+            raise ToolBoxError(f"Error validating internal database.{err_msg}")
 
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
@@ -171,14 +154,12 @@ class ToolBox(Database):
         """Checks to see if output is an error message and exits if it is"""
         config = Validator.yamale_validate_files(yaml_fname, schema_fname)
         if isinstance(config, str):
-            self.exit(config)
+            raise ToolBoxError(config)
         return config
 
-    def exit(self, msg: str, exception: Exception = ToolBoxError) -> None:
+    def exit(self) -> None:
         """Method for nicely erroring and exiting"""
         self.cleanup()
-        self.log(msg, LogLevel.ERROR)
-        raise exception(msg)
 
     def get_db(self, field: str) -> Any:
         """Attempts to get value from database"""
@@ -186,7 +167,8 @@ class ToolBox(Database):
         if success:
             return value
         else:
-            self.exit(f'Field "{field}" not found in internal database.')
+            raise ToolBoxError(
+                f'Field "{field}" not found in internal database.')
 
     def make_build_dir(self):
         """Make build directory and symlink"""
@@ -212,7 +194,7 @@ class ToolBox(Database):
         # Load tools file (may include globals)
         tool_file = self.check_file(fname)
         if tool_file is None:
-            self.exit(f'Cannot find tool file "{fname}"')
+            raise ToolBoxError(f'Cannot find tool file "{fname}"')
         schema_file = self.check_file(
             os.path.join(self.get_db('internal.home_dir'),
                          "toolbox/schemas/tools.yml"))
@@ -221,7 +203,7 @@ class ToolBox(Database):
         # Exit if no valid tools found
         tool_paths = self.check_dirs(tool_config['tools'])
         if tool_paths == []:
-            self.exit(f'No valid tools found in "{tool_file}"')
+            raise ToolBoxError(f'No valid tools found in "{tool_file}"')
         return tool_paths
 
     def validate_tools(self, tool_paths: List[Path]) -> dict:
@@ -237,7 +219,7 @@ class ToolBox(Database):
         for tool in tool_configs:
             tool_name = list(tool.keys())[0]
             if tool_name in list(tool_config['tools'].keys()):
-                self.exit(
+                raise ToolBoxError(
                     f'Tool w/ name "{tool_name}" defined multiple times.')
             tool_config['tools'].update(tool)
         return tool_config
@@ -249,13 +231,14 @@ class ToolBox(Database):
         # Check and validate tool.yml
         tool_yml = self.check_file(tool_path / 'tool.yml')
         if tool_yml is None:
-            self.exit(
+            raise ToolBoxError(
                 f'Tool at path "{tool_path}" does not contain required tool.yml file.'
             )
         yml = self.validate_yaml(
             str(tool_yml),
             os.path.join(self.get_db('internal.home_dir'),
                          'toolbox/schemas/tool.yml'))
+
         # Save name but delete from base dict
         tool_name = yml["name"]
         del yml["name"]
@@ -279,6 +262,12 @@ class ToolBox(Database):
 
     def run_task(self, task: Task) -> None:
         """Runs the task (i.e. subcomponent of a job)"""
+        # Check to make sure that tool actually exists
+        if task.tool not in list(self.get_db('internals.tools').keys()):
+            raise ToolBoxError(
+                f'Job "{self.get_db("internal.args.job")}" cannot find Tool "{task.tool}"'
+            )
+        # Issue starting log message
         self.log(
             f'Starting task "{task.tool}" of job "{self.get_db("internal.args.job")}".'
         )
@@ -292,7 +281,6 @@ class ToolBox(Database):
                     f'Additional configuration file "{config}" successfully loaded.'
                 )
         self._db.resolve()
-        self.check_db(task.tool)
         # Import in tool (using absolute path??)
         tool_path = Path(self.get_db(f"internal.tools.{task.tool}.path"))
         sys.path.insert(1, str(tool_path.parent))
@@ -300,7 +288,8 @@ class ToolBox(Database):
         ToolClass = getattr(tool_module, task.tool)
         tool = ToolClass(self, self.log)
         if not isinstance(tool, Tool):
-            self.exit(f'Tool "{task.tool}" is not a sub-class of Tool.')
+            raise ToolBoxError(
+                f'Tool "{task.tool}" is not a sub-class of Tool.')
         # Log step function for steps
         def log_step(msg: str, step: str, level: LogLevel) -> None:
             prefix = f"[{self.get_db('internal.args.job')}] [{task.tool}] [{step}] [%(levelname)s]"

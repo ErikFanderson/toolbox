@@ -1,0 +1,5 @@
+tools.ToolA.property0: "hello"
+tools.ToolA.property0: 77 
+tools:
+  ToolA:
+    property1: "string not int" 

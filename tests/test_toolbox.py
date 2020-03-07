@@ -15,6 +15,10 @@ import pytest
 from toolbox.toolbox import ToolBox, ToolBoxParams
 from toolbox.logger import LogLevel, LoggerParams
 from toolbox.dot_dict import DotDict, DictError
+from toolbox.tool import ToolError
+from toolbox.toolbox import ToolBoxError
+
+MOCK_DIR = Path(__file__).resolve().parent / 'mock'
 
 
 # TODO implement me
@@ -45,58 +49,154 @@ def test_no_jobs_in_namespace():
 
 
 # TODO implement me
-def test_invalid_job_passed():
-    """Checks to makes sure that invalid job names cause error"""
-
-
-# TODO implement me
-def test_valid_additional_config():
-    """Checks that toolbox works when given valid
-    additional configs when running a job.
-    """
-
-
-# TODO implement me
-def test_invalid_additional_config():
-    """Checks that toolbox errors when given invalid
-    additional configs when running a job.
-    """
-
-
-# TODO implement me
-def test_invalid_config_value():
-    """Checks that toolbox errors when given invalid configs"""
-
-
-# TODO implement me
-def test_valid_config_value():
-    """Checks that toolbox does not error when given valid configs"""
-
-
-# TODO implement me
-def test_missing_config_value():
-    """Checks that toolbox errors when missing a required value"""
-
-
-# TODO implement me
 def test_tools_w_same_name_error():
     """Makes sure that all tools have different names"""
 
 
-def test_invalid_config():
-    """Test to make sure that invalid config files are properly ignored"""
-    pass
-
-
-def test_tool_validate():
-    mock_dir = Path(__file__).resolve().parent / 'mock'
-    args = ToolBoxParams(f'{mock_dir}/tools.yml',
+def test_missing_superclass_property_tool_inheritance():
+    """Make sure that tools are check correctly"""
+    args = ToolBoxParams(f'{MOCK_DIR}/tools_subclass.yml',
                          build_dir='build',
                          symlink=None,
                          config=[
-                             f'{mock_dir}/config_a.yml',
-                             f'{mock_dir}/config_b.yml',
-                             f'{mock_dir}/job.yml',
+                             f'{MOCK_DIR}/config_b.yml',
+                             f'{MOCK_DIR}/config_subclass.yml',
+                             f'{MOCK_DIR}/job.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_subclass_job')
+    tb = ToolBox(args)
+    with pytest.raises(ToolError):
+        tb.execute()
+
+
+def test_missing_subclass_property_tool_inheritance():
+    """Test subclass of tool w/ missing subclass property"""
+    args = ToolBoxParams(f'{MOCK_DIR}/tools_subclass.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/config_a.yml',
+                             f'{MOCK_DIR}/config_b.yml', f'{MOCK_DIR}/job.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_subclass_job')
+    tb = ToolBox(args)
+    with pytest.raises(ToolError):
+        tb.execute()
+
+
+def test_successful_tool_inheritance():
+    """Make sure that tools are check correctly"""
+    args = ToolBoxParams(f'{MOCK_DIR}/tools_subclass.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/config_a.yml',
+                             f'{MOCK_DIR}/config_b.yml',
+                             f'{MOCK_DIR}/config_subclass.yml',
+                             f'{MOCK_DIR}/job.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_subclass_job')
+    tb = ToolBox(args)
+    tb.execute()
+
+
+def test_invalid_tools_file():
+    """Tests to make sure that assertion is raised when invalid tool property is loaded"""
+    args = ToolBoxParams(f'{MOCK_DIR}/tools_invalid.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/config_a.yml',
+                             f'{MOCK_DIR}/config_b.yml', f'{MOCK_DIR}/job.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
+    with pytest.raises(ToolBoxError):
+        tb = ToolBox(args)
+
+
+def test_missing_tools_file():
+    """Tests to make sure that assertion is raised when invalid tool property is loaded"""
+    args = ToolBoxParams(f'{MOCK_DIR}/nonexistent.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/config_a.yml',
+                             f'{MOCK_DIR}/config_b.yml', f'{MOCK_DIR}/job.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
+    with pytest.raises(ToolBoxError):
+        tb = ToolBox(args)
+
+
+def test_invalid_job():
+    """Tests to make sure that assertion is raised when invalid tool property is loaded"""
+    args = ToolBoxParams(f'{MOCK_DIR}/tools.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/config_a.yml',
+                             f'{MOCK_DIR}/config_b.yml',
+                             f'{MOCK_DIR}/job_invalid.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
+    with pytest.raises(ToolBoxError):
+        tb = ToolBox(args)
+
+
+def test_invalid_tool_properties():
+    """Tests to make sure that assertion is raised when invalid tool property is loaded"""
+    args = ToolBoxParams(f'{MOCK_DIR}/tools.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/config_a_invalid.yml',
+                             f'{MOCK_DIR}/config_b.yml', f'{MOCK_DIR}/job.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
+    tb = ToolBox(args)
+    with pytest.raises(ToolError):
+        tb.execute()
+
+
+#def test_invalid_config_file_path
+def test_missing_tool_properties():
+    """Tests to make sure that assertion is raised when missing a tool property"""
+    args = ToolBoxParams(f'{MOCK_DIR}/tools.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/nonexistent.yml',
+                             f'{MOCK_DIR}/config_b.yml', f'{MOCK_DIR}/job.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
+    tb = ToolBox(args)
+    with pytest.raises(ToolError):
+        tb.execute()
+
+
+def test_tool_validate():
+    args = ToolBoxParams(f'{MOCK_DIR}/tools.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/config_a.yml',
+                             f'{MOCK_DIR}/config_b.yml', f'{MOCK_DIR}/job.yml'
                          ],
                          interactive=False,
                          log_params=LoggerParams(LogLevel.DEBUG),

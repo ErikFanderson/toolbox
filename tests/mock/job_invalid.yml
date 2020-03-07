@@ -1,0 +1,2 @@
+jobs:
+  example_job: [{tool: ToolA}, {invalid: 34}]

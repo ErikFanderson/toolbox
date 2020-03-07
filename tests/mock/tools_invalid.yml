@@ -1,0 +1,4 @@
+tools:
+  - 45
+  - tests/mock/tool_a/
+  - tests/mock/tool_b/

@@ -1,2 +1,3 @@
 jobs:
   example_job: [{tool: ToolA}]
+  example_subclass_job: [{tool: ToolSubclass}]

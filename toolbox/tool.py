@@ -19,6 +19,7 @@ from jinja2 import StrictUndefined, FileSystemLoader, Environment
 # Imports - local source
 from .database import Database
 from .logger import LogLevel
+from .utils import Validator
 
 
 class ToolError(Exception):
@@ -32,6 +33,33 @@ class Tool(ABC):
         self._db = db
         self._log = log
         self.path = self.get_db(f'internal.tools.{type(self).__name__}.path')
+        self.check_db()
+
+    def check_db(self):
+        """Checks database against default and provided schemas
+        To be run after loading tools, configs, and performing resolution
+        # TODO ultimately this should be rewritten to not perform validation
+        serially... Construct large schema and run on entire database
+        """
+        # Check tool and all tool superclasses
+        for c in type(self).mro():
+            if issubclass(c, Tool) and not c == Tool:
+                self.check_db_tool(c.__name__)
+
+    def check_db_tool(self, tool_name: str):
+        """Checks the database and makes sure it has proper values for the given tool"""
+        # Check tool properties
+        tool = self.get_db(f"internal.tools.{tool_name}")
+        for prop_name, prop in tool['properties'].items():
+            dot_str = f"tools.{tool_name}.{prop_name}"
+            data = {f"{prop_name}": self.get_db(dot_str)}
+            schema = {f"{prop_name}": prop["schema"]}
+            err_msg = Validator.yamale_validate_dicts(data, schema)
+            if isinstance(err_msg, str):
+                descr = prop["description"]
+                raise ToolError(
+                    f'Invalid value for property "{dot_str}".\nDescription: {descr}{err_msg}'
+                )
 
     def set_log_fn(self, log: Callable[[str, LogLevel], None]):
         """For changing the logging functionality between steps"""
