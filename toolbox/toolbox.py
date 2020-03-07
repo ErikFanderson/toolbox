@@ -281,9 +281,8 @@ class ToolBox(Database):
                     f'Additional configuration file "{config}" successfully loaded.'
                 )
         self._db.resolve()
-        # Import in tool (using absolute path??)
+        # Instantiate tool class
         tool_path = Path(self.get_db(f"internal.tools.{task.tool}.path"))
-        sys.path.insert(1, str(tool_path.parent))
         tool_module = importlib.import_module(tool_path.stem)
         ToolClass = getattr(tool_module, task.tool)
         tool = ToolClass(self, self.log)
@@ -304,11 +303,15 @@ class ToolBox(Database):
             step()
         # Reload original contents of database
         self._db = original_db
-        sys.path.remove(str(tool_path.parent))
+        #sys.path.remove(str(tool_path.parent))
 
     def execute(self):
         """Runs the job!"""
-        #print(self.get_db("internal"))
+        # Load tools into python path
+        for tool in list(self.get_db("internal.tools").keys()):
+            tool_path = Path(self.get_db(f"internal.tools.{tool}.path"))
+            sys.path.insert(1, str(tool_path.parent))
+        # Run all tasks in job
         tasks = self.get_db(f'jobs.{self.get_db("internal.args.job")}')
         for task in tasks:
             self.run_task(Task(**task))
