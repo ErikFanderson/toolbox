@@ -26,10 +26,9 @@ class ToolError(Exception):
     """Error to show that tool implementation has hit exception"""
 
 
-class Tool(HasLogFunction):
+class Tool(HasLogFunction, ABC):
     """Base class that all tools must inherit from
-    Inherits from HasLogFunction which is an abstract class
-    Originally the Tool just inherited from ABC
+    Inherits from HasLogFunction which is also an abstract class
     """
     def __init__(self, db: Database, log: Callable[[str, LogLevel], None]):
         """Just sets the database"""
