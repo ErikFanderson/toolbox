@@ -77,28 +77,28 @@ class Tool(HasLogFunction, ABC):
         """
         return self._db.get_db(dot_str)
 
-    def jinja_render(self, template_fname: str, output_fname: str,
-                     **kwargs: Any):
-        '''Loads template and outputs to file
-        :param template_fname filename of jinja template
-        :param output_fname filename of output file
-        '''
-        # Load any additional template directories
-        dirs = [os.path.join(self.path, 'templates')]
-        if 'additional_template_dirs' in kwargs:
-            dirs += kwargs['additional_template_dirs']
-            del kwargs['additional_template_dirs']
-        # Open template and read
-        with open(template_fname, 'r') as fp:
-            fsl = FileSystemLoader(dirs)
-            template = Environment(
-                loader=fsl, undefined=StrictUndefined).from_string(fp.read())
-        # Render template and output to file
-        uname = getpass.getuser()
-        date = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
-        out = template.render(kwargs, uname=uname, date=date)
-        with open(output_fname, 'w') as fp:
-            fp.write(out)
+    #def jinja_render(self, template_fname: str, output_fname: str,
+    #                 **kwargs: Any):
+    #    '''Loads template and outputs to file
+    #    :param template_fname filename of jinja template
+    #    :param output_fname filename of output file
+    #    '''
+    #    # Load any additional template directories
+    #    dirs = [os.path.join(self.path, 'templates')]
+    #    if 'additional_template_dirs' in kwargs:
+    #        dirs += kwargs['additional_template_dirs']
+    #        del kwargs['additional_template_dirs']
+    #    # Open template and read
+    #    with open(template_fname, 'r') as fp:
+    #        fsl = FileSystemLoader(dirs)
+    #        template = Environment(
+    #            loader=fsl, undefined=StrictUndefined).from_string(fp.read())
+    #    # Render template and output to file
+    #    uname = getpass.getuser()
+    #    date = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
+    #    out = template.render(kwargs, uname=uname, date=date)
+    #    with open(output_fname, 'w') as fp:
+    #        fp.write(out)
 
     @abstractmethod
     def steps(self) -> List[Callable[[], None]]:

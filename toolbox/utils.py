@@ -16,6 +16,7 @@ import yaml
 import yamale
 from yamale.validators import DefaultValidators, Validator
 from yamale.schema import Schema
+from jinja2 import Environment, StrictUndefined, PackageLoader
 
 # Imports - local source
 
@@ -160,3 +161,40 @@ class Validator:
             return data[0][0]
         except ValueError as err:
             return str(err)
+
+
+class JinjaModule:
+    """Base jinja module w/ render function"""
+    def __init__(self,
+                 package: str,
+                 templates: str = 'templates',
+                 environment: Optional[Environment] = None):
+        """Creates a jinja2 environment for this module
+        :param package The package that this module resides in
+        :param templates The path to the templates dir relative to the package
+        """
+        self.env = Environment(loader=PackageLoader(package, templates),
+                               undefined=StrictUndefined)
+
+    def render_to_file(self, template: str, outfile: str, **kwargs: Any):
+        """Gets template from environment and renders
+        :param template template to be used
+        :param outfile Name/path of output file
+        :param kwargs Key word arguments to be passed to jinja2 template
+        """
+        with open(outfile, 'w') as fp:
+            fp.write(self.render(template, kwargs))
+
+    def render(self, template: str, **kwargs: Any):
+        """Gets template from environment and renders
+        :param template template to be used
+        :param outfile Name/path of output file
+        """
+        # Defaults
+        if 'tab' not in kwargs:
+            kwargs.update({"tab": 4 * ' '})
+        # Always pass username and date
+        uname = getpass.getuser()
+        date = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
+        template = self.env.get_template(template)
+        return template.render(**kwargs, _uname=uname, _date=date)
