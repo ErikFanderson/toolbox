@@ -10,6 +10,8 @@ from typing import Tuple, Callable, Optional, List, Any, Union
 from pathlib import Path
 import sys
 import subprocess
+import getpass
+from datetime import datetime
 
 # Imports - 3rd party packages
 import yaml
@@ -165,16 +167,14 @@ class Validator:
 
 class JinjaModule:
     """Base jinja module w/ render function"""
-    def __init__(self,
-                 package: str,
-                 templates: str = 'templates',
-                 environment: Optional[Environment] = None):
+
+    #def __init__(self, search_dirs: List[str], environment: Optional[Environment] = None):
+    def __init__(self, environment: Environment):
         """Creates a jinja2 environment for this module
         :param package The package that this module resides in
         :param templates The path to the templates dir relative to the package
         """
-        self.env = Environment(loader=PackageLoader(package, templates),
-                               undefined=StrictUndefined)
+        self.env = environment
 
     def render_to_file(self, template: str, outfile: str, **kwargs: Any):
         """Gets template from environment and renders
@@ -183,7 +183,7 @@ class JinjaModule:
         :param kwargs Key word arguments to be passed to jinja2 template
         """
         with open(outfile, 'w') as fp:
-            fp.write(self.render(template, kwargs))
+            fp.write(self.render(template, **kwargs))
 
     def render(self, template: str, **kwargs: Any):
         """Gets template from environment and renders
@@ -191,8 +191,7 @@ class JinjaModule:
         :param outfile Name/path of output file
         """
         # Defaults
-        if 'tab' not in kwargs:
-            kwargs.update({"tab": 4 * ' '})
+        kwargs.update({"_tab": 4 * ' '})
         # Always pass username and date
         uname = getpass.getuser()
         date = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
