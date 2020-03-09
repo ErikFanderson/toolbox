@@ -1,0 +1,9 @@
+# Name must match the class name in __init__.py
+name: JinjaTool 
+
+# Dictionary containg all properties/attributes required by the tool
+properties:
+  template_directories:
+    description: "Additional jinja2 rendering template directories."
+    default: []
+    schema: "list(str())"

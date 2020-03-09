@@ -40,7 +40,7 @@ def check_files(fnames: List[str],
         return_files = [fname for fname in checked_fnames if fname]
         if return_files:
             return return_files
-    return None
+    return []
 
 
 def check_dirs(dirs: List[str], action: Optional[Callable[[str], Any]] = None
@@ -51,7 +51,7 @@ def check_dirs(dirs: List[str], action: Optional[Callable[[str], Any]] = None
         return_dirs = [directory for directory in checked_dirs if directory]
         if return_dirs:
             return return_dirs
-    return None
+    return []
 
 
 def check_file(fname: str, action: Optional[Callable[[str], Any]] = None
@@ -163,37 +163,3 @@ class Validator:
             return data[0][0]
         except ValueError as err:
             return str(err)
-
-
-class JinjaModule:
-    """Base jinja module w/ render function"""
-
-    #def __init__(self, search_dirs: List[str], environment: Optional[Environment] = None):
-    def __init__(self, environment: Environment):
-        """Creates a jinja2 environment for this module
-        :param package The package that this module resides in
-        :param templates The path to the templates dir relative to the package
-        """
-        self.env = environment
-
-    def render_to_file(self, template: str, outfile: str, **kwargs: Any):
-        """Gets template from environment and renders
-        :param template template to be used
-        :param outfile Name/path of output file
-        :param kwargs Key word arguments to be passed to jinja2 template
-        """
-        with open(outfile, 'w') as fp:
-            fp.write(self.render(template, **kwargs))
-
-    def render(self, template: str, **kwargs: Any):
-        """Gets template from environment and renders
-        :param template template to be used
-        :param outfile Name/path of output file
-        """
-        # Defaults
-        kwargs.update({"_tab": 4 * ' '})
-        # Always pass username and date
-        uname = getpass.getuser()
-        date = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
-        template = self.env.get_template(template)
-        return template.render(**kwargs, _uname=uname, _date=date)
