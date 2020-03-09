@@ -19,6 +19,7 @@ from jinja2 import StrictUndefined, FileSystemLoader, Environment
 # Imports - local source
 from toolbox.database import Database
 from toolbox.logger import LogLevel, HasLogFunction
+from toolbox.toolbox import Tool
 from toolbox.utils import Validator
 
 
