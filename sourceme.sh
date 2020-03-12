@@ -3,9 +3,9 @@
 # Set PYTHONPATH accordingly
 if [ -z "$PYTHONPATH" ]
 then
-    export PYTHONPATH=$PWD
+    export PYTHONPATH=$PWD:$PWD/toolbox/Yamale
 else
-    export PYTHONPATH=$PWD:$PYTHONPATH
+    export PYTHONPATH=$PWD:$PWD/toolbox/Yamale:$PYTHONPATH
 fi
 
 # Set MYPYPATH accordingly

@@ -1,0 +1,2 @@
+tools:
+  - tests/mock/schema_includes/tool_schema_include

@@ -1,0 +1,11 @@
+# References
+name: ToolSchemaInclude
+properties:
+  property1:
+    description: "Here is a description of required included property"
+    default: {} 
+    schema: "include('included_property')"
+schema_includes:
+  included_property:
+    thing1: "list(required=False)"
+    thing2: "int()"

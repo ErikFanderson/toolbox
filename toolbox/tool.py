@@ -19,7 +19,7 @@ from jinja2 import StrictUndefined, FileSystemLoader, Environment
 # Imports - local source
 from .database import Database
 from .logger import LogLevel, HasLogFunction
-from .utils import Validator
+from .utils import YamaleValidator
 
 
 class ToolError(Exception):
@@ -56,7 +56,10 @@ class Tool(HasLogFunction, ABC):
             dot_str = f"tools.{tool_name}.{prop_name}"
             data = {f"{prop_name}": self.get_db(dot_str)}
             schema = {f"{prop_name}": prop["schema"]}
-            err_msg = Validator.yamale_validate_dicts(data, schema)
+            includes = None
+            if "schema_includes" in list(tool.keys()):
+                includes = tool["schema_includes"]
+            err_msg = YamaleValidator.validate_dicts(data, schema, includes)
             if isinstance(err_msg, str):
                 descr = prop["description"]
                 raise ToolError(

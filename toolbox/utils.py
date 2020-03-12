@@ -121,7 +121,7 @@ class Anything(Validator):
         return True
 
 
-class Validator:
+class YamaleValidator:
     """Saves home directory and allows for easy checking of files
     Relies heavily on Pathlib
     """
@@ -129,10 +129,14 @@ class Validator:
     validators[Anything.tag] = Anything
 
     @classmethod
-    def yamale_validate_files(cls, yaml_fname: str,
-                              schema_fname: str) -> Union[str, dict]:
+    def validate_files(cls,
+                       yaml_fname: str,
+                       schema_fname: str,
+                       includes: dict = None) -> Union[str, dict]:
         """Uses yamale to calidate yaml file"""
         schema = yamale.make_schema(schema_fname, validators=cls.validators)
+        if includes is not None:
+            schema.add_include(includes)
         data = yamale.make_data(yaml_fname)
         try:
             yamale.validate(schema, data)
@@ -141,10 +145,12 @@ class Validator:
             return str(err)
 
     @classmethod
-    def yamale_validate_dicts(cls, data: dict,
-                              schema: dict) -> Union[str, dict]:
+    def validate_dicts(cls, data: dict, schema: dict,
+                       includes: dict = None) -> Union[str, dict]:
         """Uses yamale to validate dictionary"""
         schema = Schema(schema, validators=cls.validators)
+        if includes is not None:
+            schema.add_include(includes)
         data = [(data, '')]
         try:
             yamale.validate(schema, data)
@@ -153,10 +159,14 @@ class Validator:
             return str(err)
 
     @classmethod
-    def yamale_validate_dict_with_file(cls, data: dict,
-                                       schema_fname: str) -> Union[str, dict]:
+    def validate_dict_with_file(cls,
+                                data: dict,
+                                schema_fname: str,
+                                includes: dict = None) -> Union[str, dict]:
         """Uses yamale to validate dictionary"""
         schema = yamale.make_schema(schema_fname, validators=cls.validators)
+        if includes is not None:
+            schema.add_include(includes)
         data = [(data, '')]
         try:
             yamale.validate(schema, data)

@@ -1,0 +1,2 @@
+jobs.example_job: [{tool: "ToolSchemaInclude"}]
+tools.ToolSchemaInclude.property1: {"thing1": "not a list", "thing2": 8}

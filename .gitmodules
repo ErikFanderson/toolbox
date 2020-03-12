@@ -1,0 +1,3 @@
+[submodule "toolbox/Yamale"]
+	path = toolbox/Yamale
+	url = git@github.com:ErikFanderson/Yamale.git

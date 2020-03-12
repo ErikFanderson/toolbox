@@ -124,13 +124,13 @@ class ToolBox(Database, HasLogFunction):
 
     def validate_db(self, fname):
         """Runs database against schema in file fname"""
-        err_msg = Validator.yamale_validate_dict_with_file(self._db, fname)
+        err_msg = YamaleValidator.validate_dict_with_file(self._db, fname)
         if isinstance(err_msg, str):
             raise ToolBoxError(f"Error validating internal database.{err_msg}")
 
     def validate_yaml(self, yaml_fname: str, schema_fname: str):
         """Checks to see if output is an error message and exits if it is"""
-        config = Validator.yamale_validate_files(yaml_fname, schema_fname)
+        config = YamaleValidator.validate_files(yaml_fname, schema_fname)
         if isinstance(config, str):
             raise ToolBoxError(config)
         return config
