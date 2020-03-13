@@ -77,6 +77,7 @@ class ToolBox(Database, HasLogFunction):
         self._load_dict({"internal.home_dir": str(home_dir)})
         self._load_dict({"internal.work_dir": str(Path('.').resolve())})
         self._load_dict({"internal.job_dir": self.make_build_dir()})
+        self._load_dict({"internal.tools": {}})
         # Populate Database
         self.populate_database()
         atexit.register(self.exit)
@@ -102,9 +103,11 @@ class ToolBox(Database, HasLogFunction):
         # Check and add tools to database
         tool_paths = self.validate_tools_file(
             self.get_db("internal.args.tools_file"))
+        # EVENTUALLY JUST CALL THIS #########
+        #for tool_path in tool_paths:
+        #    self.add_tool_schema(tool_path / "tools.yml")
+        #####################################
         tool_config = self.validate_tools(tool_paths)
-        # Add to internals
-        self._load_dict({"internals": tool_config})
         # Add to unprotected namespace
         self.load_dict(tool_config)
 
@@ -178,11 +181,11 @@ class ToolBox(Database, HasLogFunction):
                          "toolbox/schemas/tools.yml"))
         # Validate tool config
         tool_config = self.validate_yaml(str(tool_file), str(schema_file))
-        # Exit if no valid tools found
         tool_paths = self.check_dirs(tool_config['tools'])
-        if tool_paths == []:
-            raise ToolBoxError(f'No valid tools found in "{tool_file}"')
         return tool_paths
+
+########################################################################
+# 1. Add defaults and add new schemas section to internal.tools.<TOOL>
 
     def validate_tools(self, tool_paths: List[Path]) -> dict:
         """Iterateively builds tool config.
@@ -226,9 +229,44 @@ class ToolBox(Database, HasLogFunction):
         self._load_dict({f"internal.tools.{tool_name}": internal_config})
         # Generate external tool database
         tool_config = {tool_name: {}}
+        #tool_config[tool_name]['path'] = str(tool_path)
         for prop_name, prop in yml["properties"].items():
             tool_config[tool_name][prop_name] = prop['default']
         return tool_config
+
+    def add_tool_schema(self, path_to_schema: str):
+        """Adds schema to internal Database
+        Basically adds a new namespace to database w/ default values
+        and schemas
+        """
+        # Validate that path exists
+        tool_yml = self.check_file(tool_path / 'tool.yml')
+        if tool_yml is None:
+            raise ToolBoxError(
+                f'Tool Schema at path "{tool_path}" is not a valid file.')
+        #
+        yml = self.validate_yaml(
+            path_to_schema,
+            os.path.join(self.get_db('internal.home_dir'),
+                         'toolbox/schemas/tool.yml'))
+        # Save name but delete from base dict
+        schema_name = yml["name"]
+        del yml["name"]
+
+        # Update internal database with original yml dict + path
+        internal_config = copy.deepcopy(yml)
+        internal_config['path'] = str(tool_path)
+        #if tool_name in list(self.get_db("internal.tools").keys()):
+        self._load_dict({f"internal.tools.{tool_name}": internal_config})
+
+        # Generate external tool database
+        tool_config = {tool_name: {}}
+        for prop_name, prop in yml["properties"].items():
+            tool_config[tool_name][prop_name] = prop['default']
+        return tool_config
+
+
+########################################################################
 
     def cleanup(self):
         """Performs any actions required before exiting program"""
@@ -241,7 +279,7 @@ class ToolBox(Database, HasLogFunction):
     def run_task(self, task: Task) -> None:
         """Runs the task (i.e. subcomponent of a job)"""
         # Check to make sure that tool actually exists
-        if task.tool not in list(self.get_db('internals.tools').keys()):
+        if task.tool not in list(self.get_db('internal.tools').keys()):
             raise ToolBoxError(
                 f'Job "{self.get_db("internal.args.job")}" cannot find Tool "{task.tool}"'
             )

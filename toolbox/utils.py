@@ -121,12 +121,40 @@ class Anything(Validator):
         return True
 
 
+class Directory(Validator):
+    """Validates something that is a valid directory
+    Either pass as absolute path or will validate
+    relative to the working directory
+    """
+    tag = 'dir'
+
+    def _is_valid(self, value):
+        if isinstance(value, str):
+            return Path(value).is_dir()
+        return False
+
+
+class File(Validator):
+    """Validates something that is a valid file
+    Either pass as absolute path or will validate
+    relative to the working directory
+    """
+    tag = 'file'
+
+    def _is_valid(self, value):
+        if isinstance(value, str):
+            return Path(value).is_file()
+        return False
+
+
 class YamaleValidator:
     """Saves home directory and allows for easy checking of files
     Relies heavily on Pathlib
     """
     validators = DefaultValidators.copy()
     validators[Anything.tag] = Anything
+    validators[File.tag] = File
+    validators[Directory.tag] = Directory
 
     @classmethod
     def validate_files(cls,

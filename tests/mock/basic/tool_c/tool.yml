@@ -1,0 +1,11 @@
+# References
+name: ToolC
+properties:
+  property0:
+    description: "Here is a description of a file property"
+    default: null 
+    schema: "file()"
+  property1:
+    description: "Here is a description of a directory property"
+    default: null
+    schema: "dir()"

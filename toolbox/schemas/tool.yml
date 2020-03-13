@@ -2,6 +2,7 @@
 name: str()
 properties: map(include('property'))
 schema_includes: map(required=False)
+additional_schemas: list(file(), required=False)
 ---
 property:
   default: anything()

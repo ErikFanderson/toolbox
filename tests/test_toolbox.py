@@ -53,19 +53,68 @@ def test_tools_w_same_name_error():
     """Makes sure that all tools have different names"""
 
 
-def test_missing_superclass_property_tool_inheritance():
-    """Make sure that tools are check correctly"""
-    args = ToolBoxParams(f'{MOCK_DIR}/tool_inheritance/tool_subclass/tools_subclass.yml',
+def test_fail_when_not_file():
+    """Make sure that file validation works"""
+    args = ToolBoxParams(f'{MOCK_DIR}/basic/tools.yml',
                          build_dir='build',
                          symlink=None,
                          config=[
-                             f'{MOCK_DIR}/basic/config_b.yml',
-                             f'{MOCK_DIR}/tool_inheritance/tool_subclass/config_subclass.yml',
+                             f'{MOCK_DIR}/basic/config_c_file_invalid.yml',
                              f'{MOCK_DIR}/basic/job.yml'
                          ],
                          interactive=False,
                          log_params=LoggerParams(LogLevel.DEBUG),
-                         job='example_subclass_job')
+                         job='example_dir_file_validate')
+    tb = ToolBox(args)
+    with pytest.raises(ToolError):
+        tb.execute()
+
+
+def test_fail_when_not_dir():
+    """Make sure that direcotry validation works"""
+    args = ToolBoxParams(f'{MOCK_DIR}/basic/tools.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/basic/config_c_dir_invalid.yml',
+                             f'{MOCK_DIR}/basic/job.yml'
+                         ],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_dir_file_validate')
+    tb = ToolBox(args)
+    with pytest.raises(ToolError):
+        tb.execute()
+
+
+def test_file_and_dir_validators():
+    """Make sure that tools are check correctly"""
+    args = ToolBoxParams(
+        f'{MOCK_DIR}/basic/tools.yml',
+        build_dir='build',
+        symlink=None,
+        config=[f'{MOCK_DIR}/basic/config_c.yml', f'{MOCK_DIR}/basic/job.yml'],
+        interactive=False,
+        log_params=LoggerParams(LogLevel.DEBUG),
+        job='example_dir_file_validate')
+    tb = ToolBox(args)
+    tb.execute()
+
+
+def test_missing_superclass_property_tool_inheritance():
+    """Make sure that tools are check correctly"""
+    args = ToolBoxParams(
+        f'{MOCK_DIR}/tool_inheritance/tool_subclass/tools_subclass.yml',
+        build_dir='build',
+        symlink=None,
+        config=[
+            f'{MOCK_DIR}/basic/config_b.yml',
+            f'{MOCK_DIR}/tool_inheritance/tool_subclass/config_subclass.yml',
+            f'{MOCK_DIR}/basic/job.yml'
+        ],
+        interactive=False,
+        log_params=LoggerParams(LogLevel.DEBUG),
+        job='example_subclass_job')
     tb = ToolBox(args)
     with pytest.raises(ToolError):
         tb.execute()
@@ -73,16 +122,17 @@ def test_missing_superclass_property_tool_inheritance():
 
 def test_missing_subclass_property_tool_inheritance():
     """Test subclass of tool w/ missing subclass property"""
-    args = ToolBoxParams(f'{MOCK_DIR}/tool_inheritance/tool_subclass/tools_subclass.yml',
-                         build_dir='build',
-                         symlink=None,
-                         config=[
-                             f'{MOCK_DIR}/basic/config_a.yml',
-                             f'{MOCK_DIR}/basic/config_b.yml', f'{MOCK_DIR}/basic/job.yml'
-                         ],
-                         interactive=False,
-                         log_params=LoggerParams(LogLevel.DEBUG),
-                         job='example_subclass_job')
+    args = ToolBoxParams(
+        f'{MOCK_DIR}/tool_inheritance/tool_subclass/tools_subclass.yml',
+        build_dir='build',
+        symlink=None,
+        config=[
+            f'{MOCK_DIR}/basic/config_a.yml', f'{MOCK_DIR}/basic/config_b.yml',
+            f'{MOCK_DIR}/basic/job.yml'
+        ],
+        interactive=False,
+        log_params=LoggerParams(LogLevel.DEBUG),
+        job='example_subclass_job')
     tb = ToolBox(args)
     with pytest.raises(ToolError):
         tb.execute()
@@ -90,18 +140,18 @@ def test_missing_subclass_property_tool_inheritance():
 
 def test_successful_tool_inheritance():
     """Make sure that tools are check correctly"""
-    args = ToolBoxParams(f'{MOCK_DIR}/tool_inheritance/tool_subclass/tools_subclass.yml',
-                         build_dir='build',
-                         symlink=None,
-                         config=[
-                             f'{MOCK_DIR}/basic/config_a.yml',
-                             f'{MOCK_DIR}/basic/config_b.yml',
-                             f'{MOCK_DIR}/tool_inheritance/tool_subclass/config_subclass.yml',
-                             f'{MOCK_DIR}/basic/job.yml'
-                         ],
-                         interactive=False,
-                         log_params=LoggerParams(LogLevel.DEBUG),
-                         job='example_subclass_job')
+    args = ToolBoxParams(
+        f'{MOCK_DIR}/tool_inheritance/tool_subclass/tools_subclass.yml',
+        build_dir='build',
+        symlink=None,
+        config=[
+            f'{MOCK_DIR}/basic/config_a.yml', f'{MOCK_DIR}/basic/config_b.yml',
+            f'{MOCK_DIR}/tool_inheritance/tool_subclass/config_subclass.yml',
+            f'{MOCK_DIR}/basic/job.yml'
+        ],
+        interactive=False,
+        log_params=LoggerParams(LogLevel.DEBUG),
+        job='example_subclass_job')
     tb = ToolBox(args)
     tb.execute()
 
@@ -113,7 +163,8 @@ def test_invalid_tools_file():
                          symlink=None,
                          config=[
                              f'{MOCK_DIR}/basic/config_a.yml',
-                             f'{MOCK_DIR}/basic/config_b.yml', f'{MOCK_DIR}/basic/job.yml'
+                             f'{MOCK_DIR}/basic/config_b.yml',
+                             f'{MOCK_DIR}/basic/job.yml'
                          ],
                          interactive=False,
                          log_params=LoggerParams(LogLevel.DEBUG),
@@ -129,7 +180,8 @@ def test_missing_tools_file():
                          symlink=None,
                          config=[
                              f'{MOCK_DIR}/basic/config_a.yml',
-                             f'{MOCK_DIR}/basic/config_b.yml', f'{MOCK_DIR}/basic/job.yml'
+                             f'{MOCK_DIR}/basic/config_b.yml',
+                             f'{MOCK_DIR}/basic/job.yml'
                          ],
                          interactive=False,
                          log_params=LoggerParams(LogLevel.DEBUG),
@@ -162,7 +214,8 @@ def test_invalid_tool_properties():
                          symlink=None,
                          config=[
                              f'{MOCK_DIR}/basic/config_a_invalid.yml',
-                             f'{MOCK_DIR}/basic/config_b.yml', f'{MOCK_DIR}/basic/job.yml'
+                             f'{MOCK_DIR}/basic/config_b.yml',
+                             f'{MOCK_DIR}/basic/job.yml'
                          ],
                          interactive=False,
                          log_params=LoggerParams(LogLevel.DEBUG),
@@ -172,7 +225,6 @@ def test_invalid_tool_properties():
         tb.execute()
 
 
-#def test_invalid_config_file_path
 def test_missing_tool_properties():
     """Tests to make sure that assertion is raised when missing a tool property"""
     args = ToolBoxParams(f'{MOCK_DIR}/basic/tools.yml',
@@ -180,7 +232,8 @@ def test_missing_tool_properties():
                          symlink=None,
                          config=[
                              f'{MOCK_DIR}/nonexistent.yml',
-                             f'{MOCK_DIR}/basic/config_b.yml', f'{MOCK_DIR}/basic/job.yml'
+                             f'{MOCK_DIR}/basic/config_b.yml',
+                             f'{MOCK_DIR}/basic/job.yml'
                          ],
                          interactive=False,
                          log_params=LoggerParams(LogLevel.DEBUG),
@@ -196,7 +249,8 @@ def test_tool_validate():
                          symlink=None,
                          config=[
                              f'{MOCK_DIR}/basic/config_a.yml',
-                             f'{MOCK_DIR}/basic/config_b.yml', f'{MOCK_DIR}/basic/job.yml'
+                             f'{MOCK_DIR}/basic/config_b.yml',
+                             f'{MOCK_DIR}/basic/job.yml'
                          ],
                          interactive=False,
                          log_params=LoggerParams(LogLevel.DEBUG),
