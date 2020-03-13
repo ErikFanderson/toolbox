@@ -1,0 +1,4 @@
+tools:
+  - tests/mock/tool_inheritance/tool_subclass/
+  - tests/mock/basic/tool_a/
+  - tests/mock/basic/tool_b/

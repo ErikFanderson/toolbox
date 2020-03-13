@@ -1,4 +1,0 @@
-tools:
-  - tests/mock/separate_subclass/tool_subclass/
-  - tests/mock/tool_a/
-  - tests/mock/tool_b/

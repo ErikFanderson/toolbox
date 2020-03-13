@@ -1,0 +1,11 @@
+# References
+name: ToolSubclass
+properties:
+  subclass_property0:
+    description: "Here is a description of subclass_property0"
+    default: ["default"]
+    schema: "list(str())"
+  subclass_property1:
+    description: "Here is a description of subclass_property1"
+    default: null
+    schema: "int()"
