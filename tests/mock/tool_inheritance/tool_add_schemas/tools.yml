@@ -1,0 +1,2 @@
+tools:
+  - tests/mock/tool_inheritance/tool_add_schemas/

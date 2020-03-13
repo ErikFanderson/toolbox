@@ -47,6 +47,14 @@ class Tool(HasLogFunction, ABC):
         for c in type(self).mro():
             if issubclass(c, Tool) and not c == Tool:
                 self.check_db_tool(c.__name__)
+                add_sch = self.get_db(
+                    f"internal.tools.{c.__name__}.additional_schemas")
+                for schema in add_sch:
+                    self.check_db_tool(schema)
+
+    def get_additional_schemas(self, tool_name: str):
+        """Gets all schema names associated with this tool"""
+        return []
 
     def check_db_tool(self, tool_name: str):
         """Checks the database and makes sure it has proper values for the given tool"""

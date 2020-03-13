@@ -1,5 +1,5 @@
 # References
-name: ToolAddSchemas 
+name: namespace1 
 properties:
   property0:
     description: "Here is a description of property0"
@@ -10,5 +10,4 @@ properties:
     default: null
     schema: "int()"
 additional_schemas:
-  - "./schema_valid_0.yml"
-  - "./schema_valid_1.yml"
+  - "./schema_valid_2.yml"

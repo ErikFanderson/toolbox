@@ -1,11 +1,13 @@
 # References
-name: ToolSubclass
+name: namespace0 
 properties:
-  subclass_property0:
+  property0:
     description: "Here is a description of subclass_property0"
     default: ["default"]
     schema: "list(str())"
-  subclass_property1:
+  property1:
     description: "Here is a description of subclass_property1"
     default: null
     schema: "int()"
+additional_schemas:
+  - "./schema_valid_2.yml"
