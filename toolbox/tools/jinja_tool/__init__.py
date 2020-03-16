@@ -40,6 +40,18 @@ class JinjaTool(Tool):
         fsl = FileSystemLoader(dirs)
         self.env = Environment(loader=fsl, undefined=StrictUndefined)
 
+    @staticmethod
+    def add_template_dirs(db: Database, dirs: List[str]):
+        """Adds directories to jinja directories portion of database"""
+        # Check to make sure they are actually directories
+        for d in dirs:
+            d = Path(d).resolve()
+            if not d.is_dir():
+                raise ToolError(f'Jinja tool cannot find directory "{d}"')
+        # Update database
+        templates = dirs + db.get_db("tools.JinjaTool.template_directories")
+        db.load_dict({"tools.JinjaTool.template_directories": dirs})
+
     def render_to_file(self, template: str, outfile: str, **kwargs: Any):
         """Gets template from environment and renders
         :param template template to be used
