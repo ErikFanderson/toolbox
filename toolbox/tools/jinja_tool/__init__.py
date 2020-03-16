@@ -38,7 +38,8 @@ class JinjaTool(Tool):
             self.get_db('tools.JinjaTool.template_directories'))
         dirs += extra_template_dirs
         fsl = FileSystemLoader(dirs)
-        self.env = Environment(loader=fsl, undefined=StrictUndefined)
+        self.env = Environment(loader=fsl, undefined=StrictUndefined,
+        trim_blocks=True, lstrip_blocks=True)
 
     @staticmethod
     def add_template_dirs(db: Database, dirs: List[str]):

@@ -57,6 +57,6 @@ class Database:
         value as second arg
         """
         try:
-            return (True, self._db.get_via_dot_string(field))
+            return (True, copy.deepcopy(self._db.get_via_dot_string(field)))
         except KeyError:
             return (False, None)
