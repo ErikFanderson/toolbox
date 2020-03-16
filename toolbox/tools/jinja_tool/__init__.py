@@ -25,21 +25,18 @@ from toolbox.utils import Validator
 
 class JinjaTool(Tool):
     """Base jinja Tool w/ render function. Still Abstract"""
-    def __init__(self,
-                 db: Database,
-                 log: Callable[[str, LogLevel], None],
-                 extra_template_dirs: List[str] = []):
+    def __init__(self, db: Database, log: Callable[[str, LogLevel], None]):
         """Creates a jinja2 environment for this module
         :param package The package that this module resides in
         :param templates The path to the templates dir relative to the package
         """
         Tool.__init__(self, db, log)
-        dirs = self.check_dirs(
+        fsl = FileSystemLoader(
             self.get_db('tools.JinjaTool.template_directories'))
-        dirs += extra_template_dirs
-        fsl = FileSystemLoader(dirs)
-        self.env = Environment(loader=fsl, undefined=StrictUndefined,
-        trim_blocks=True, lstrip_blocks=True)
+        self.env = Environment(loader=fsl,
+                               undefined=StrictUndefined,
+                               trim_blocks=True,
+                               lstrip_blocks=True)
 
     @staticmethod
     def add_template_dirs(db: Database, dirs: List[str]):
@@ -51,7 +48,7 @@ class JinjaTool(Tool):
                 raise ToolError(f'Jinja tool cannot find directory "{d}"')
         # Update database
         templates = dirs + db.get_db("tools.JinjaTool.template_directories")
-        db.load_dict({"tools.JinjaTool.template_directories": dirs})
+        db.load_dict({"tools.JinjaTool.template_directories": templates})
 
     def render_to_file(self, template: str, outfile: str, **kwargs: Any):
         """Gets template from environment and renders
