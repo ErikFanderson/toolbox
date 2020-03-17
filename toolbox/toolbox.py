@@ -334,7 +334,7 @@ class ToolBox(Database, HasLogFunction):
                 tool_path = Path(self.get_db(f"internal.tools.{tool}.path"))
                 sys.path.insert(1, str(tool_path.parent))
         # Run all tasks in job
-        tasks = self.get_db(f'jobs.{self.get_db("internal.args.job")}')
-        for task in tasks:
+        job = self.get_db(f'jobs.{self.get_db("internal.args.job")}')
+        for task in job["tasks"]:
             self.run_task(Task(**task))
         self.cleanup()

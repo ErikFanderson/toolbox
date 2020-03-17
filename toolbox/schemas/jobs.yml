@@ -1,5 +1,8 @@
-jobs: map(list(include('task')))
+jobs: map(include('job'))
 ---
+job:
+  description: str(required=False)
+  tasks: list(include("task"))
 task:
   tool: str()
   additional_configs: list(str(),required=False)

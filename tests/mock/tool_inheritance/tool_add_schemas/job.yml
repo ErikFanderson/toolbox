@@ -1,2 +1,2 @@
 jobs:
-  example_job: [{tool: ToolAddSchemas}]
+  example_job.tasks: [{tool: ToolAddSchemas}]
