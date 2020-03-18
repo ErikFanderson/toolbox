@@ -8,6 +8,7 @@
 # Imports - standard library
 from typing import Tuple, Callable, Optional, List, Any, Union
 from pathlib import Path
+import os
 import sys
 import subprocess
 import getpass
@@ -98,19 +99,24 @@ class BinaryDriver:
 
     def add_option(self, value=None, flag=None):
         """Adds an option to the options list"""
-        if value or flag:
-            value = str(value).strip() if value else ''
-            flag = str(flag).strip() if flag else ''
-            self.__options.append(f"{flag} {value}".strip())
+        self._add_option(flag)
+        self._add_option(value)
+
+    def _add_option(self, option):
+        """Adds an option to the options list"""
+        if option:
+            option = str(option).strip()
+            self.__options.append(option)
 
     def get_execute_string(self) -> str:
         """Returns the call to the executable"""
         options = ' '.join(self.__options)
         return f"{self.__binary} {options}"
 
-    def execute(self, directory: str = None) -> str:
+    def execute(self, directory: str = None):
         """Actually executes"""
-        return subprocess.run([self.__binary] + self.__options, cwd=directory)
+        subprocess.run([self.__binary] + self.__options,
+                       cwd=directory).check_returncode()
 
 
 class Anything(Validator):
