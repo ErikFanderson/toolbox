@@ -23,6 +23,13 @@ from toolbox.toolbox import Tool
 from toolbox.utils import Validator
 
 
+def realpath_filter(text: str) -> str:
+    """Realpath filter for jinja2
+    Resolves path and returns the absolute path
+    """
+    return str(Path(text).resolve())
+
+
 class JinjaTool(Tool):
     """Base jinja Tool w/ render function. Still Abstract"""
     def __init__(self, db: Database, log: Callable[[str, LogLevel], None]):
@@ -37,6 +44,8 @@ class JinjaTool(Tool):
                                undefined=StrictUndefined,
                                trim_blocks=True,
                                lstrip_blocks=True)
+        # Add some filters (names are same as ansible filters...)
+        self.env.filters["realpath"] = realpath_filter
 
     @staticmethod
     def add_template_dirs(db: Database, dirs: List[str]):
