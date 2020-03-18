@@ -25,28 +25,33 @@ class DictError(Exception):
 class DotDict(dict):
     def set_via_dot_string(self, dot_str: str, value: Any) -> bool:
         """Returns a modified dictionary accessed by a dot access_via_string
-        Will unapologetically redefine values! Need to allow for adding to dictionaries!
+        WILL RUTHLESSLY REDEFINE VALUES! Need to allow for adding to dictionaries!
         :param dot_str Dot string such as key1.key2.key3
         :param value The value at the end of the key string
         """
         keys = dot_str.split('.')
         set_val = self
+        parent_val = None  # shouldn't cause issues
+        parent_k = None  # shouldn't cause issues
         for i, k in enumerate(keys):
             if len(keys) == (i + 1):
                 try:
                     set_val[k] = value
                 except TypeError:
-                    raise DictError(
-                        f"Illegal redefinition of global database field.")
+                    parent_val[parent_k] = {}
+                    set_val = parent_val[parent_k]
+                    set_val[k] = value
             else:
+                parent_val = set_val
                 try:
                     set_val = set_val[k]
                 except KeyError:
                     set_val[k] = {}
                     set_val = set_val[k]
                 except TypeError:
-                    raise DictError(
-                        f"Illegal redefinition of global database field.")
+                    parent_val[parent_k] = {}
+                    set_val = parent_val[parent_k]
+            parent_k = k
 
     def get_via_dot_string(self, dot_str: str) -> Any:
         """Allows for accessing dictionary via dot methods"""

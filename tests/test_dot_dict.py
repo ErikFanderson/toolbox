@@ -133,7 +133,7 @@ def test_resolve_cat():
 
 
 def test_dot_dict_redefinition():
-    """Fails becuase tries to redefine field"""
+    """PASSES - ALLOWS REDEFINITION"""
     # Flatten first
     my_dict = DotDict({
         "zero": {
@@ -156,9 +156,7 @@ def test_dot_dict_redefinition():
     # Flatten should work
     my_dict.flatten()
     assert (my_dict == flattened_dict)
-    # Redefinition error should be raised
-    with pytest.raises(DictError):
-        my_dict.dot_expand()
+    my_dict.dot_expand()  # With unordered dicts the output is random...
 
 
 def test_dot_dict_expand():
