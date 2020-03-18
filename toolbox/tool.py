@@ -70,6 +70,7 @@ class Tool(HasLogFunction, ABC):
             err_msg = YamaleValidator.validate_dicts(data, schema, includes)
             if isinstance(err_msg, str):
                 descr = prop["description"]
+                print(self.get_db(f"tools.{tool_name}"))
                 raise ToolError(
                     f'Invalid value for property "{dot_str}".\nDescription: {descr}{err_msg}'
                 )

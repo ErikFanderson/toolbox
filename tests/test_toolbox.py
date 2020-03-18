@@ -292,3 +292,15 @@ def test_tool_validate():
                          job='example_job')
     tb = ToolBox(args)
     tb.execute()
+
+
+def test_tool_nested_schemas():
+    args = ToolBoxParams(f'{MOCK_DIR}/tech/tools.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[f'{MOCK_DIR}/tech/config_valid.yml'],
+                         interactive=False,
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='test')
+    tb = ToolBox(args)
+    tb.execute()

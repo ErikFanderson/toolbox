@@ -32,8 +32,10 @@ class DotDict(dict):
         keys = dot_str.split('.')
         set_val = self
         parent_val = None  # shouldn't cause issues
+        next_parent_val = None  # shouldn't cause issues
         parent_k = None  # shouldn't cause issues
         for i, k in enumerate(keys):
+            next_parent_val = set_val
             if len(keys) == (i + 1):
                 try:
                     set_val[k] = value
@@ -42,7 +44,6 @@ class DotDict(dict):
                     set_val = parent_val[parent_k]
                     set_val[k] = value
             else:
-                parent_val = set_val
                 try:
                     set_val = set_val[k]
                 except KeyError:
@@ -50,7 +51,9 @@ class DotDict(dict):
                     set_val = set_val[k]
                 except TypeError:
                     parent_val[parent_k] = {}
-                    set_val = parent_val[parent_k]
+                    parent_val[parent_k][k] = {}
+                    set_val = parent_val[parent_k][k]
+            parent_val = next_parent_val
             parent_k = k
 
     def get_via_dot_string(self, dot_str: str) -> Any:

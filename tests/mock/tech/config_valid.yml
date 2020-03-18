@@ -1,0 +1,11 @@
+tools.ToolTechnology.property1: 11
+jobs.test.tasks: [{tool: ToolTechnology}]
+
+tools.technology.views:
+  example_view:
+    libs: ["Makefile"]
+    lefs: ["Makefile"]
+    gds: ["Makefile"]
+    cap_file_type: "qrc"
+    cap_file: "Makefile"
+    sdc_mode: "basic"

@@ -1,0 +1,13 @@
+# References
+name: ToolTechnology 
+properties:
+  property0:
+    description: "Here is a description of property0"
+    default: ["default"]
+    schema: "list(str())"
+  property1:
+    description: "Here is a description of property1"
+    default: null
+    schema: "int()"
+additional_schemas:
+  - "./technology.yml"
