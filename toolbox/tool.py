@@ -36,6 +36,26 @@ class Tool(HasLogFunction, ABC):
         self._log = log
         self.path = self.get_db(f'internal.tools.{type(self).__name__}.path')
         self.check_db()
+        self.ts = self.gen_toolspace()
+
+    @property
+    def namespaces(self):
+        """Returns a list of all associated namespaces"""
+        namespaces = {}
+        for c in type(self).mro():
+            if issubclass(c, Tool) and not c == Tool:
+                namespaces[c.__name__] = None
+                for add_sch in self.get_db(
+                        f"internal.tools.{c.__name__}.additional_schemas"):
+                    namespaces[add_sch] = None
+        return list(namespaces.keys())
+
+    def gen_toolspace(self):
+        """Creates a toolspace w/ all included properties"""
+        toolspace = {}
+        for t in self.namespaces:
+            toolspace.update({t: self.get_db(f"tools.{t}")})
+        return toolspace
 
     def check_db(self):
         """Checks database against default and provided schemas
@@ -44,17 +64,8 @@ class Tool(HasLogFunction, ABC):
         serially... Construct large schema and run on entire database
         """
         # Check tool and all tool superclasses
-        for c in type(self).mro():
-            if issubclass(c, Tool) and not c == Tool:
-                self.check_db_tool(c.__name__)
-                add_sch = self.get_db(
-                    f"internal.tools.{c.__name__}.additional_schemas")
-                for schema in add_sch:
-                    self.check_db_tool(schema)
-
-    def get_additional_schemas(self, tool_name: str):
-        """Gets all schema names associated with this tool"""
-        return []
+        for namespace in self.namespaces:
+            self.check_db_tool(namespace)
 
     def check_db_tool(self, tool_name: str):
         """Checks the database and makes sure it has proper values for the given tool"""
