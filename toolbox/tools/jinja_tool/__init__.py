@@ -38,8 +38,10 @@ class JinjaTool(Tool):
         :param templates The path to the templates dir relative to the package
         """
         Tool.__init__(self, db, log)
-        fsl = FileSystemLoader(
-            self.get_db('tools.JinjaTool.template_directories'))
+        fsl = FileSystemLoader([
+            os.path.join(self.get_db("internal.tools.JinjaTool.path"),
+                         "templates")
+        ] + self.get_db('tools.JinjaTool.template_directories'))
         self.env = Environment(loader=fsl,
                                undefined=StrictUndefined,
                                trim_blocks=True,
