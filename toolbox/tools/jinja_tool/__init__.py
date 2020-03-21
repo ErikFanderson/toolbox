@@ -30,6 +30,13 @@ def realpath_filter(text: str) -> str:
     return str(Path(text).resolve())
 
 
+def realpath_join_filter(items: List[str], join_arg: str) -> str:
+    """Realpath filter for jinja2
+    Resolves path and returns the absolute path
+    """
+    return join_arg.join([str(Path(item).resolve()) for item in items])
+
+
 class JinjaTool(Tool):
     """Base jinja Tool w/ render function. Still Abstract"""
     def __init__(self, db: Database, log: Callable[[str, LogLevel], None]):
@@ -48,6 +55,7 @@ class JinjaTool(Tool):
                                lstrip_blocks=True)
         # Add some filters (names are same as ansible filters...)
         self.env.filters["realpath"] = realpath_filter
+        self.env.filters["realpathjoin"] = realpath_join_filter
 
     @staticmethod
     def add_template_dirs(db: Database, dirs: List[str]):
