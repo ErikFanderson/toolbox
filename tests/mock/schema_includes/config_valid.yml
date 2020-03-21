@@ -1,2 +1,2 @@
 jobs.example_job.tasks: [{tool: "ToolSchemaInclude"}]
-tools.ToolSchemaInclude.property1: {"thing1": ["list", "yup"], "thing2": 8}
+tsinclude.property1: {"thing1": ["list", "yup"], "thing2": 8}

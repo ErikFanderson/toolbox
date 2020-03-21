@@ -39,22 +39,33 @@ class Tool(HasLogFunction, ABC):
         self.ts = self.gen_toolspace()
 
     @property
-    def namespaces(self):
-        """Returns a list of all associated namespaces"""
-        namespaces = {}
+    def namespace(self) -> Optional[str]:
+        """Returns namespace/alias for this tool"""
+        cls = type(self).__name__
+        return self.get_db(
+            f"internal.tools.{cls}.namespace") if cls != "Tool" else None
+
+    @property
+    def tools(self):
+        """Returns a list of all associated (subclass) tools"""
+        tools = []
         for c in type(self).mro():
             if issubclass(c, Tool) and not c == Tool:
-                namespaces[c.__name__] = None
-                for add_sch in self.get_db(
-                        f"internal.tools.{c.__name__}.additional_schemas"):
-                    namespaces[add_sch] = None
-        return list(namespaces.keys())
+                tools.append(c.__name__)
+        return tools
+
+    @property
+    def namespaces(self):
+        """Returns a list of all associated namespaces"""
+        return [
+            self.get_db(f"internal.tools.{t}.namespace") for t in self.tools
+        ]
 
     def gen_toolspace(self):
         """Creates a toolspace w/ all included properties"""
         toolspace = {}
-        for t in self.namespaces:
-            toolspace.update({t: self.get_db(f"tools.{t}")})
+        for ns in self.namespaces:
+            toolspace.update({ns: self.get_db(f"{ns}")})
         return toolspace
 
     def check_db(self):
@@ -63,16 +74,15 @@ class Tool(HasLogFunction, ABC):
         # TODO ultimately this should be rewritten to not perform validation
         serially... Construct large schema and run on entire database
         """
-        # Check tool and all tool superclasses
-        for namespace in self.namespaces:
-            self.check_db_tool(namespace)
+        for tool in self.tools:
+            self.check_db_tool(tool)
 
     def check_db_tool(self, tool_name: str):
-        """Checks the database and makes sure it has proper values for the given tool"""
+        """Checks the database and makes sure it has proper values for the given namespace"""
         # Check tool properties
         tool = self.get_db(f"internal.tools.{tool_name}")
         for prop_name, prop in tool['properties'].items():
-            dot_str = f"tools.{tool_name}.{prop_name}"
+            dot_str = f"{tool['namespace']}.{prop_name}"
             data = {f"{prop_name}": self.get_db(dot_str)}
             schema = {f"{prop_name}": prop["schema"]}
             includes = None
@@ -81,7 +91,6 @@ class Tool(HasLogFunction, ABC):
             err_msg = YamaleValidator.validate_dicts(data, schema, includes)
             if isinstance(err_msg, str):
                 descr = prop["description"]
-                print(self.get_db(f"tools.{tool_name}"))
                 raise ToolError(
                     f'Invalid value for property "{dot_str}".\nDescription: {descr}{err_msg}'
                 )

@@ -1,4 +1,5 @@
-name: ToolB
+tool: ToolB
+namespace: tool_b 
 properties:
   property0:
     description: "Here is a description of not required property0"

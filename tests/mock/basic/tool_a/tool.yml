@@ -1,5 +1,6 @@
 # References
-name: ToolA
+tool: ToolA
+namespace: tool_a 
 properties:
   property0:
     description: "Here is a description of not required property0"

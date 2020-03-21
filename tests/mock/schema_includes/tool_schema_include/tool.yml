@@ -1,5 +1,6 @@
 # References
-name: ToolSchemaInclude
+tool: ToolSchemaInclude
+namespace: tsinclude 
 properties:
   property1:
     description: "Here is a description of required included property"

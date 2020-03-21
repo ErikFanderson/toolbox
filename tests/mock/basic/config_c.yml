@@ -1,2 +1,2 @@
-tools.ToolC.property0: "tests/test_toolbox.py"
-tools.ToolC.property1: "tests" 
+tool_c.property0: "tests/test_toolbox.py"
+tool_c.property1: "tests" 

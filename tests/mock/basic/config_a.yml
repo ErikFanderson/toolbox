@@ -1,5 +1,4 @@
-tools.ToolA.property0: "hello"
-tools.ToolA.property0: "hello_again"
-tools:
-  ToolA:
-    property1: 39
+tool_a.property0: "hello"
+tool_a.property0: "hello_again"
+tool_a:
+  property1: 39

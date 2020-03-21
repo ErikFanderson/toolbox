@@ -1,14 +1,12 @@
-# Specif
-name: "str()"
-properties: "map(include('property'))"
-schema_includes: "map(required=False)"
-#additional_schemas: "list(include('additional_schema'), required=False)"
-additional_schemas: "list(str(), required=False)"
+"include('tool_schema', strict=True)"
+---
+tool_schema:
+  tool: "str()"
+  namespace: "str()"
+  properties: "map(include('property'))"
+  schema_includes: "map(required=False)"
 ---
 property:
   default: "anything()"
   description: "str()"
   schema: "str()"
-additional_schema:
-  path: "str()"
-  relative_to: "enum('work', 'toolbox', 'file')"

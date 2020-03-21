@@ -1,2 +1,2 @@
-tools.ToolC.property0: 33 
-tools.ToolC.property1: "tests" 
+tool_c.property0: 33 
+tool_c.property1: "tests" 

@@ -1,5 +1,6 @@
 # References
-name: ToolC
+tool: ToolC
+namespace: tool_c 
 properties:
   property0:
     description: "Here is a description of a file property"

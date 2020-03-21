@@ -1,5 +1,6 @@
 # Name must match the class name in __init__.py
-name: JinjaTool 
+tool: JinjaTool 
+namespace: jinja 
 
 # Dictionary containg all properties/attributes required by the tool
 properties:

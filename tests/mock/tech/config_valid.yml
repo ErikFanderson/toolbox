@@ -1,7 +1,7 @@
-tools.ToolTechnology.property1: 11
+tech.property1: 11
 jobs.test.tasks: [{tool: ToolTechnology}]
 
-tools.technology.views:
+tech.views:
   example_view:
     libs: ["Makefile"]
     lefs: ["Makefile"]

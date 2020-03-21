@@ -19,7 +19,7 @@ from jinja2 import StrictUndefined, FileSystemLoader, Environment
 # Imports - local source
 from toolbox.database import Database
 from toolbox.logger import LogLevel, HasLogFunction
-from toolbox.toolbox import Tool
+from toolbox.tool import Tool, ToolError
 from toolbox.utils import Validator
 
 
@@ -48,7 +48,7 @@ class JinjaTool(Tool):
         fsl = FileSystemLoader([
             os.path.join(self.get_db("internal.tools.JinjaTool.path"),
                          "templates")
-        ] + self.get_db('tools.JinjaTool.template_directories'))
+        ] + self.get_db(f'jinja.template_directories'))
         self.env = Environment(loader=fsl,
                                undefined=StrictUndefined,
                                trim_blocks=True,
@@ -66,8 +66,8 @@ class JinjaTool(Tool):
             if not d.is_dir():
                 raise ToolError(f'Jinja tool cannot find directory "{d}"')
         # Update database
-        templates = dirs + db.get_db("tools.JinjaTool.template_directories")
-        db.load_dict({"tools.JinjaTool.template_directories": templates})
+        templates = dirs + db.get_db("jinja.template_directories")
+        db.load_dict({"jinja.template_directories": templates})
 
     def render_to_file(self, template: str, outfile: str, **kwargs: Any):
         """Gets template from environment and renders

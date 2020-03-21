@@ -1,5 +1,6 @@
 # References
-name: ToolSubclass
+tool: ToolSubclass
+namespace: "tsclass" 
 properties:
   subclass_property0:
     description: "Here is a description of subclass_property0"
