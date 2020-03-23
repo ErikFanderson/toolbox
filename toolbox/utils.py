@@ -97,12 +97,19 @@ class BinaryDriver:
         self.__binary = binary
         self.__options = []
 
-    def add_option(self, value=None, flag=None):
+    def pop_option(self, num: int = 1):
+        """Pops num options"""
+        for i in range(num):
+            self.__options.pop(-1)
+
+    def add_option(self,
+                   value: Optional[str] = None,
+                   flag: Optional[str] = None):
         """Adds an option to the options list"""
         self._add_option(flag)
         self._add_option(value)
 
-    def _add_option(self, option):
+    def _add_option(self, option: Optional[str]):
         """Adds an option to the options list"""
         if option:
             option = str(option).strip()
