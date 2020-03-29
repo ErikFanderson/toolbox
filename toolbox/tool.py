@@ -39,13 +39,6 @@ class Tool(HasLogFunction, ABC):
         self.ts = self.gen_toolspace()
 
     @property
-    def namespace(self) -> Optional[str]:
-        """Returns namespace/alias for this tool"""
-        cls = type(self).__name__
-        return self.get_db(
-            f"internal.tools.{cls}.namespace") if cls != "Tool" else None
-
-    @property
     def tools(self):
         """Returns a list of all associated (subclass) tools"""
         tools = []
@@ -60,6 +53,15 @@ class Tool(HasLogFunction, ABC):
         return [
             self.get_db(f"internal.tools.{t}.namespace") for t in self.tools
         ]
+
+    def get_namespace(self, tool_name: str) -> str:
+        """Returns namespace/alias given a tool name"""
+        return self.get_db(f"internal.tools.{tool_name}.namespace")
+
+    def get_namespace_dict(self, tool_name: str) -> dict:
+        """Returns namespace/alias dictionary given a tool name"""
+        ns = self.get_namespace(tool_name)
+        return self.get_db(ns)
 
     def gen_toolspace(self):
         """Creates a toolspace w/ all included properties"""

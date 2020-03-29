@@ -44,7 +44,14 @@ class JinjaTool(Tool):
         :param package The package that this module resides in
         :param templates The path to the templates dir relative to the package
         """
-        Tool.__init__(self, db, log)
+        super(JinjaTool, self).__init__(db, log)
+        # Add all tool template directories
+        for t in self.tools:
+            d = os.path.join(self.get_db(f'internal.tools.{t}.path'),
+                             "templates")
+            if os.path.isdir(d):
+                self.add_template_dirs(db, [d])
+        # Create environment
         fsl = FileSystemLoader([
             os.path.join(self.get_db("internal.tools.JinjaTool.path"),
                          "templates")
