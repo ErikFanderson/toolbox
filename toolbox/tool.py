@@ -37,6 +37,7 @@ class Tool(HasLogFunction, ABC):
         self.path = self.get_db(f'internal.tools.{type(self).__name__}.path')
         self.check_db()
         self.ts = self.gen_toolspace()
+        self.log(f"Verified namespaces: {', '.join(self.namespaces)}")
 
     @property
     def tools(self):
