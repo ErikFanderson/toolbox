@@ -86,7 +86,8 @@ class ToolBox(Database, HasLogFunction):
         self._load_dict({"internal.work_dir": str(Path('.').resolve())})
         self._load_dict({"internal.job_dir": self.make_build_dir()})
         self._load_dict({"internal.tools": {}})
-        self.load_dict({"jobs": {}})
+        self.load_dict({"jobs": {}})  # Reserves namespace jobs
+        self.load_dict({"user": {}})  # Reserves namespace user
         # Populate Database
         self.populate_database()
         atexit.register(self.exit)

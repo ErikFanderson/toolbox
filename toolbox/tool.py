@@ -67,8 +67,11 @@ class Tool(HasLogFunction, ABC):
     def gen_toolspace(self):
         """Creates a toolspace w/ all included properties"""
         toolspace = {}
+        # Add all namespaces
         for ns in self.namespaces:
             toolspace.update({ns: self.get_db(f"{ns}")})
+        # Also add custom user namespace
+        toolspace.update({ns: self.get_db(f"user")})
         return toolspace
 
     def check_db(self):
