@@ -18,10 +18,6 @@ from toolbox.logger import LogLevel, LoggerParams
 from toolbox.dot_dict import DotDict, DictError
 
 
-def test_jinja_module():
-    """Tests jinja module render"""
-
-
 def test_bin_driver():
     """Checks binary driver functions"""
     binary = BinaryDriver("binary/path")

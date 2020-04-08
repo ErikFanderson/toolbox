@@ -4,7 +4,7 @@ namespace: jinja
 
 # Dictionary containg all properties/attributes required by the tool
 properties:
-  template_directories:
-    description: "Additional jinja2 rendering template directories."
+  additional_templates:
+    description: "Additional jinja2 rendering templates."
     default: []
-    schema: "list(str())"
+    schema: "list(file())"

@@ -12,6 +12,7 @@ from typing import List, Callable, Any, Optional
 from pathlib import Path
 import getpass
 from datetime import datetime
+import shutil
 
 # Imports - 3rd party packages
 from jinja2 import StrictUndefined, FileSystemLoader, Environment
@@ -45,17 +46,22 @@ class JinjaTool(Tool):
         :param templates The path to the templates dir relative to the package
         """
         super(JinjaTool, self).__init__(db, log)
-        # Add all tool template directories
+        # Create templates dir in job dir
+        self.templates_dir = os.path.join(self.get_db("internal.job_dir"),
+                                          "jinja_templates")
+        Path(self.templates_dir).mkdir(parents=True, exist_ok=True)
+        # Add all tool templates
         for t in self.tools:
             d = os.path.join(self.get_db(f'internal.tools.{t}.path'),
                              "templates")
             if os.path.isdir(d):
-                self.add_template_dirs(db, [d])
+                self.add_jinja_templates([str(f) for f in Path(d).glob("*")])
+        # Add additional templates
+        self.add_jinja_templates(
+            self.get_db(
+                self.get_namespace("JinjaTool") + ".additional_templates"))
         # Create environment
-        fsl = FileSystemLoader([
-            os.path.join(self.get_db("internal.tools.JinjaTool.path"),
-                         "templates")
-        ] + self.get_db(f'jinja.template_directories'))
+        fsl = FileSystemLoader([self.templates_dir])
         self.env = Environment(loader=fsl,
                                undefined=StrictUndefined,
                                trim_blocks=True,
@@ -64,17 +70,14 @@ class JinjaTool(Tool):
         self.env.filters["realpath"] = realpath_filter
         self.env.filters["realpathjoin"] = realpath_join_filter
 
-    @staticmethod
-    def add_template_dirs(db: Database, dirs: List[str]):
-        """Adds directories to jinja directories portion of database"""
+    def add_jinja_templates(self, files: List[str]):
+        """Adds templates to jinja directories portion of database"""
         # Check to make sure they are actually directories
-        for d in dirs:
-            d = Path(d).resolve()
-            if not d.is_dir():
-                raise ToolError(f'Jinja tool cannot find directory "{d}"')
-        # Update database
-        templates = dirs + db.get_db("jinja.template_directories")
-        db.load_dict({"jinja.template_directories": templates})
+        for f in files:
+            f = Path(f).resolve()
+            if not f.is_file():
+                raise ToolError(f'Jinja tool cannot find file "{f}"')
+            shutil.copy(str(f), os.path.join(self.templates_dir, f.name))
 
     def render_to_file(self, template: str, outfile: str, **kwargs: Any):
         """Gets template from environment and renders
@@ -98,5 +101,5 @@ class JinjaTool(Tool):
         # Always pass username and date
         uname = getpass.getuser()
         date = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
-        template = self.env.get_template(template)
+        template = self.env.get_template(Path(template).name)
         return template.render(**kwargs, _uname=uname, _date=date)
