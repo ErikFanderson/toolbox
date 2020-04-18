@@ -13,6 +13,8 @@ import sys
 import subprocess
 import getpass
 from datetime import datetime
+import glob
+import shutil
 
 # Imports - 3rd party packages
 import yaml
@@ -22,6 +24,21 @@ from yamale.schema import Schema
 from jinja2 import Environment, StrictUndefined, PackageLoader
 
 # Imports - local source
+
+
+def remove_file_or_dir(path: str):
+    """Removes/unlinks a file or directory"""
+    for i in glob.glob(path):
+        if os.path.isdir(i):
+            shutil.rmtree(i)
+        else:
+            os.remove(i)
+
+
+def empty_dir(path: str):
+    """Removes/unlinks all files and directories in given directory"""
+    for i in glob.glob(os.path.join(path, "*")):
+        remove_file_or_dir(i)
 
 
 def unlink_missing_ok(dirname: Path) -> None:
