@@ -26,7 +26,7 @@ def test_tool_schema_include_invalid():
         build_dir='build',
         symlink=None,
         config=[f'{MOCK_DIR}/schema_includes/config_invalid.yml'],
-        interactive=False,
+        out_fname="toolbox.log",
         log_params=LoggerParams(LogLevel.DEBUG),
         job='example_job')
     tb = ToolBox(args)
@@ -40,7 +40,7 @@ def test_tool_schema_include_valid():
         build_dir='build',
         symlink=None,
         config=[f'{MOCK_DIR}/schema_includes/config_valid.yml'],
-        interactive=False,
+        out_fname="toolbox.log",
         log_params=LoggerParams(LogLevel.DEBUG),
         job='example_job')
     tb = ToolBox(args)
