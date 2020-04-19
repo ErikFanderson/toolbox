@@ -61,8 +61,8 @@ class ToolBoxParams:
     build_dir: str
     symlink: Optional[str]
     config: List[str]
-    interactive: bool
     log_params: LoggerParams
+    out_fname: str
     job: str
 
 

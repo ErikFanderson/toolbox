@@ -46,13 +46,10 @@ class ToolBoxCLIDriver:
             help=
             'Pass a configuration file (*.yml) to be included in global namespace.'
         )
-        parser.add_argument(
-            '-i',
-            '--interactive',
-            action='store_true',
-            help=
-            'Opens interactive session to query internal database before execution.'
-        )
+        parser.add_argument('-co',
+                            '--color',
+                            action='store_true',
+                            help='Adds simple color to logs.')
         parser.add_argument(
             '-l',
             '--log-level',
@@ -73,10 +70,11 @@ class ToolBoxCLIDriver:
         log_params = LoggerParams(
             level=LogLevel[(args.log_level).upper()],
             out_fname=args.output + '.log',
-            formatter="[toolbox] [%(levelname)s] %(message)s")
+            formatter=
+            "[toolbox] {begin_color}[%(levelname)s]{stop_color} %(message)s",
+            color=args.color)
         tb_args = ToolBoxParams(args.tools_file, args.build_dir, args.symlink,
-                                args.config, args.interactive, log_params,
-                                args.job)
+                                args.config, log_params, args.output, args.job)
         tb = ToolBox(tb_args)
         tb.execute()
 

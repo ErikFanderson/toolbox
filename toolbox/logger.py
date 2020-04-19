@@ -39,6 +39,7 @@ class LoggerParams:
     out_fname: Optional[str] = None
     name: str = "default"
     formatter: str = "[%(asctime)s] [%(threadName)s] [%(levelname)s] %(message)s"
+    color: bool = False
 
 
 class HasLogFunction(ABC):
@@ -84,6 +85,15 @@ def unlink_missing_ok(dirname: Path) -> None:
 
 class Logger:
     """Configurable logger for ToolBox"""
+    LOG_COLOR = {
+        "NOTSET": "\u001b[37m",
+        "DEBUG": "\u001b[36m",
+        "INFO": "\u001b[32m",
+        "WARNING": "\u001b[33m",
+        "ERROR": "\u001b[31m",
+        "CRITICAL": "\u001b[31m"
+    }
+
     def __init__(self, p: LoggerParams) -> None:
         """Initializes a logger using db values from project manager"""
         self.p = p
@@ -100,28 +110,27 @@ class Logger:
         self.stream_handler.setFormatter(formatter)
         self._logger.addHandler(self.stream_handler)
 
-    def log(self,
-            msg: str,
-            level: LogLevel = LogLevel.INFO,
-            prefix: Optional[str] = None) -> None:
+    def log(self, msg: str, level: LogLevel = LogLevel.INFO) -> None:
         """Basic log function for logger class
         :param msg Message to be logged
         :param level LogLevel to use when logging msg
         :param prefix Will add prefix to the logger formatter
         """
-        # Update formatter
-        if prefix:
-            if self.p.out_fname:
-                self.file_handler.setFormatter(
-                    Formatter(f"{prefix} %(message)s"))
-            self.stream_handler.setFormatter(
-                Formatter(f"{prefix} %(message)s"))
-        else:
-            if self.p.out_fname:
-                self.file_handler.setFormatter(Formatter(self.p.formatter))
-            self.stream_handler.setFormatter(Formatter(self.p.formatter))
         # Log information
         if self._logger.level == LogLevel.NOTSET.value:
             print(msg)
         else:
+            # Update formatter
+            if self.p.out_fname:
+                formatter = self.p.formatter.format(begin_color='',
+                                                    stop_color='')
+                self.file_handler.setFormatter(Formatter(formatter))
+            if self.p.color:
+                formatter = self.p.formatter.format(
+                    begin_color=self.LOG_COLOR[level.name],
+                    stop_color="\u001b[0m")
+            else:
+                formatter = self.p.formatter.format(begin_color='',
+                                                    stop_color='')
+            self.stream_handler.setFormatter(Formatter(formatter))
             self._logger.log(level.value, msg)
