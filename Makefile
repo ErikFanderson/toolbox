@@ -22,6 +22,7 @@ type:
 # Runs all tests in tests directory
 test:
 	pytest $(TESTS) -v
+	rm -rf build/
 
 # Runs ctags 
 tags:
