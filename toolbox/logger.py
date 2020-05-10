@@ -126,7 +126,7 @@ class Logger:
                                                     stop_color='')
                 self.file_handler.setFormatter(Formatter(formatter))
             if self.p.color:
-                formatter = self.p.formatter.format(
+                formatter = "\u001b[36m" + self.p.formatter.format(
                     begin_color=self.LOG_COLOR[level.name],
                     stop_color="\u001b[0m")
             else:
