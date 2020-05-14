@@ -137,8 +137,12 @@ class ToolBox(Database, HasLogFunction):
     def load_configs(self):
         """Loads all config files into database"""
         configs = self.check_files(self.get_db('internal.args.config'))
+        autoload_file = self.check_file(
+            os.path.join(self.get_db('internal.work_dir'), "toolbox.yml"))
+        configs = configs + [autoload_file] if autoload_file else configs
         for config in configs:
             self.load_config(config)
+            self.log(f'Loaded configuration file "{config}"', LogLevel.INFO)
         self._db.resolve()
 
     def load_config(self, config: Union[str, Path]):

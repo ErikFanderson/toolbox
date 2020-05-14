@@ -7,6 +7,7 @@
 
 # Imports - standard library
 from pathlib import Path
+import shutil
 
 # Imports - 3rd party packages
 import pytest
@@ -14,6 +15,7 @@ import pytest
 # Imports - local source
 from toolbox.toolbox import ToolBox, ToolBoxParams
 from toolbox.logger import LogLevel, LoggerParams
+from toolbox.utils import *
 from toolbox.dot_dict import DotDict, DictError
 from toolbox.tool import ToolError
 from toolbox.toolbox import ToolBoxError
@@ -257,6 +259,20 @@ def test_tool_validate():
                          job='example_job')
     tb = ToolBox(args)
     tb.execute()
+
+
+def test_tool_autoload():
+    shutil.copy(f'{MOCK_DIR}/autoload/config_a.yml', "toolbox.yml")
+    args = ToolBoxParams(f'{MOCK_DIR}/autoload/tools.yml',
+                         build_dir='build',
+                         symlink=None,
+                         config=[f'{MOCK_DIR}/autoload/job.yml'],
+                         out_fname="toolbox.log",
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
+    tb = ToolBox(args)
+    tb.execute()
+    remove_file_or_dir("toolbox.yml")
 
 
 def test_tool_nested_schemas():

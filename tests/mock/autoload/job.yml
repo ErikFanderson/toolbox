@@ -1,0 +1,5 @@
+jobs:
+  example_job: {tasks: [{tool: ToolA}]}
+  example_multi_tool_job: {tasks: [{tool: ToolA}, {tool: ToolB}]}
+  example_dir_file_validate: {tasks: [{tool: ToolC}]}
+  example_subclass_job: {tasks: [{tool: ToolSubclass}]}
