@@ -96,7 +96,7 @@ class ToolBox(Database, HasLogFunction):
         for ns in self.restricted_ns:
             self.load_dict({f"{ns}": {}})
         # Run initial load to allow for resolving of tool paths
-        self.load_configs(False)
+        self.load_configs(False, False)
         # Load all default property values for tools
         self.load_tools()
         # Load configs again to overwrite default values
@@ -113,7 +113,9 @@ class ToolBox(Database, HasLogFunction):
         """Function for logging information"""
         self._log(msg, level)
 
-    def load_configs(self, error_on_unresolved: bool = True):
+    def load_configs(self,
+                     error_on_unresolved: bool = True,
+                     print_info: bool = True):
         """Loads all config files into database"""
         # Load user specified config files
         configs = self.check_files(self.get_db('internal.args.config'))
@@ -122,7 +124,9 @@ class ToolBox(Database, HasLogFunction):
         configs = configs + [autoload_file] if autoload_file else configs
         for config in configs:
             self.load_config(config)
-            self.log(f'Loaded configuration file "{config}"', LogLevel.INFO)
+            if print_info:
+                self.log(f'Loaded configuration file "{config}"',
+                         LogLevel.INFO)
         self._db.resolve(error_on_unresolved)
 
     def load_config(self, config: Union[str, Path]):
