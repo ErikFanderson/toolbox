@@ -98,7 +98,7 @@ def check_and_resolve(rel_path: str, files: bool,
     :param dirs Checks to see whether rel_path is a directory
     :return Either a Path object or None
     '''
-    if rel_path:
+    if rel_path and isinstance(rel_path, str):
         rp = Path(rel_path).resolve()
         if files and rp.is_file():
             return rp

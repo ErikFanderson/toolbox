@@ -24,11 +24,6 @@ class ToolBoxCLIDriver:
         parser.add_argument('job',
                             help='Specifies job (*.yml) to be executed.')
         parser.add_argument(
-            '-t',
-            '--tools-file',
-            default='tools.yml',
-            help='Specifies the tool file to be used. Default: tools.yml')
-        parser.add_argument(
             '-b',
             '--build-dir',
             default='build',
@@ -73,8 +68,8 @@ class ToolBoxCLIDriver:
             formatter=
             "[toolbox] {begin_color}[%(levelname)s]{stop_color} %(message)s",
             color=args.color)
-        tb_args = ToolBoxParams(args.tools_file, args.build_dir, args.symlink,
-                                args.config, log_params, args.output, args.job)
+        tb_args = ToolBoxParams(args.build_dir, args.symlink, args.config,
+                                log_params, args.output, args.job)
         tb = ToolBox(tb_args)
         tb.execute()
 

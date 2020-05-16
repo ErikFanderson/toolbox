@@ -57,7 +57,6 @@ class Task:
 @dataclass(frozen=True)
 class ToolBoxParams:
     """All command line args to create ToolBox"""
-    tools_file: str
     build_dir: str
     symlink: Optional[str]
     config: List[str]
@@ -86,17 +85,23 @@ class ToolBox(Database, HasLogFunction):
         self._load_dict({"internal.work_dir": str(Path('.').resolve())})
         self._load_dict({"internal.job_dir": self.make_build_dir()})
         self._load_dict({"internal.tools": {}})
-        self.load_dict({"jobs": {}})  # Reserves namespace jobs
-        self.load_dict({"user": {}})  # Reserves namespace user
+        self.restricted_ns = ["jobs", "user", "tools"]
         # Populate Database
         self.populate_database()
         atexit.register(self.exit)
 
     def populate_database(self) -> dict:
         """Generates global database from config files and args"""
+        # Load empty restricted namespaces (just so that they exist)
+        for ns in self.restricted_ns:
+            self.load_dict({f"{ns}": {}})
+        # Run initial load to allow for resolving of tool paths
+        self.load_configs(False)
+        # Load all default property values for tools
         self.load_tools()
+        # Load configs again to overwrite default values
         self.load_configs()
-        # Check jobs - Validate yaml and check that each tool is found in tools file
+        # Check jobs - Validate jobs yaml
         self.validate_db(
             os.path.join(self.get_db('internal.home_dir'),
                          'toolbox/schemas/jobs.yml'))
@@ -108,13 +113,32 @@ class ToolBox(Database, HasLogFunction):
         """Function for logging information"""
         self._log(msg, level)
 
+    def load_configs(self, error_on_unresolved: bool = True):
+        """Loads all config files into database"""
+        # Load user specified config files
+        configs = self.check_files(self.get_db('internal.args.config'))
+        autoload_file = self.check_file(
+            os.path.join(self.get_db('internal.work_dir'), "toolbox.yml"))
+        configs = configs + [autoload_file] if autoload_file else configs
+        for config in configs:
+            self.load_config(config)
+            self.log(f'Loaded configuration file "{config}"', LogLevel.INFO)
+        self._db.resolve(error_on_unresolved)
+
+    def load_config(self, config: Union[str, Path]):
+        """Method for loading config to db. Exists in case this
+        behavior needs to change in the future.
+        """
+        with open(config, 'r') as fp:
+            self.load_dict(yaml.load(fp, Loader=yaml.SafeLoader))
+
     def load_tools(self):
-        """Loads tools and schemas into database"""
-        # Check and add tools to database
-        tool_paths = self.validate_tools_file(
-            self.get_db("internal.args.tools_file"))
+        """Loads tools and schemas into database as well as default properties for tools"""
+        # Check that tools are valid
+        tool_paths = self.check_dirs(self.get_db("tools"))
         # Verify that tools have proper tool.yml
         tool_schemas = {}
+        namespaces = []
         for tp in tool_paths:
             cfg = self.validate_yaml(
                 os.path.join(tp, "tool.yml"),
@@ -125,32 +149,20 @@ class ToolBox(Database, HasLogFunction):
             ts = ToolSchema(**cfg, path=str(tp))
             # Upload TS to internal
             self._load_dict({f"internal.tools.{cfg['tool']}": ts.__dict__})
-            # Upload namespace
+            # Verify namespace
             ns = cfg['namespace']
             ns_dict = {}
-            if ns in self._db:
+            if ns in namespaces:
                 raise ToolBoxError(f'Namespace "{ns}" defined multiple times')
+            elif ns in self.restricted_ns:
+                raise ToolBoxError(
+                    f'Namespace "{ns}" is used by toolbox and cannot be used as a tool namespace'
+                )
+            # upload namespace
+            namespaces.append(ns)
             for prop_name, prop in cfg["properties"].items():
                 ns_dict[prop_name] = prop["default"]
             self.load_dict({f"{ns}": ns_dict})
-
-    def load_configs(self):
-        """Loads all config files into database"""
-        configs = self.check_files(self.get_db('internal.args.config'))
-        autoload_file = self.check_file(
-            os.path.join(self.get_db('internal.work_dir'), "toolbox.yml"))
-        configs = configs + [autoload_file] if autoload_file else configs
-        for config in configs:
-            self.load_config(config)
-            self.log(f'Loaded configuration file "{config}"', LogLevel.INFO)
-        self._db.resolve()
-
-    def load_config(self, config: Union[str, Path]):
-        """Method for loading config to db. Exists in case this
-        behavior needs to change in the future.
-        """
-        with open(config, 'r') as fp:
-            self.load_dict(yaml.load(fp, Loader=yaml.SafeLoader))
 
     def validate_db(self, fname):
         """Runs database against schema in file fname"""
@@ -193,23 +205,6 @@ class ToolBox(Database, HasLogFunction):
             Path(self.get_db("internal.args.symlink")).symlink_to(
                 build_dir.parents[1], target_is_directory=True)
         return str(build_dir)
-
-    def validate_tools_file(self, fname: str) -> List[Path]:
-        """Validates the tools file
-        :param fname Filename of the tools file
-        :return List of Paths to tools
-        """
-        # Load tools file (may include globals)
-        tool_file = self.check_file(fname)
-        if tool_file is None:
-            raise ToolBoxError(f'Cannot find tool file "{fname}"')
-        schema_file = self.check_file(
-            os.path.join(self.get_db('internal.home_dir'),
-                         "toolbox/schemas/tools.yml"))
-        # Validate tool config
-        tool_config = self.validate_yaml(str(tool_file), str(schema_file))
-        tool_paths = self.check_dirs(tool_config['tools'])
-        return tool_paths
 
     def cleanup(self):
         """Performs any actions required before exiting program"""

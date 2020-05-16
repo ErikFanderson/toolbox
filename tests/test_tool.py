@@ -21,27 +21,29 @@ MOCK_DIR = Path(__file__).resolve().parent / 'mock'
 
 
 def test_tool_schema_include_invalid():
-    args = ToolBoxParams(
-        f'{MOCK_DIR}/schema_includes/tools.yml',
-        build_dir='build',
-        symlink=None,
-        config=[f'{MOCK_DIR}/schema_includes/config_invalid.yml'],
-        out_fname="toolbox.log",
-        log_params=LoggerParams(LogLevel.DEBUG),
-        job='example_job')
+    args = ToolBoxParams(build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/schema_includes/tools.yml',
+                             f'{MOCK_DIR}/schema_includes/config_invalid.yml'
+                         ],
+                         out_fname="toolbox.log",
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
     tb = ToolBox(args)
     with pytest.raises(ToolError):
         tb.execute()
 
 
 def test_tool_schema_include_valid():
-    args = ToolBoxParams(
-        f'{MOCK_DIR}/schema_includes/tools.yml',
-        build_dir='build',
-        symlink=None,
-        config=[f'{MOCK_DIR}/schema_includes/config_valid.yml'],
-        out_fname="toolbox.log",
-        log_params=LoggerParams(LogLevel.DEBUG),
-        job='example_job')
+    args = ToolBoxParams(build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/schema_includes/tools.yml',
+                             f'{MOCK_DIR}/schema_includes/config_valid.yml'
+                         ],
+                         out_fname="toolbox.log",
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
     tb = ToolBox(args)
     tb.execute()

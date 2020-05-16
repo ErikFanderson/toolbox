@@ -1,5 +1,4 @@
-tools.ToolA.property0: "hello"
-tools.ToolA.property0: 77 
-tools:
-  ToolA:
-    property1: "string not int" 
+tool_a.property0: "hello"
+tool_a.property0: 77 
+tool_a:
+  property1: "string not int" 

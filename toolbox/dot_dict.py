@@ -123,15 +123,19 @@ class DotDict(dict):
         self.update(flat_dict)
         return self
 
-    def resolve(self):
+    def resolve(self, error_on_unresolved: bool = True):
         """Runs resolve item on itself"""
         try:
-            self.resolve_item(self, re.compile(r"\${([a-zA-Z0-9\._]+)}"))
+            self.resolve_item(self, re.compile(r"\${([a-zA-Z0-9\._]+)}"),
+                              error_on_unresolved)
         except RecursionError:
             raise DictError("""Maximum recursion depth reached.
 There is most likely a circular reference present""")
 
-    def resolve_item(self, item: Any, regex: Pattern) -> Any:
+    def resolve_item(self,
+                     item: Any,
+                     regex: Pattern,
+                     error_on_unresolved: bool = True) -> Any:
         """If values are dot string keys then tries to resolve dot strings
         :param item Item to be resolved.
         :param regex Regular expression to be used to find variables to resolve
@@ -151,10 +155,11 @@ There is most likely a circular reference present""")
                 try:
                     for match in matches:
                         r = self.resolve_item(self.get_via_dot_string(match),
-                                              regex)
+                                              regex, error_on_unresolved)
                         res_items.append(r)
                 except KeyError:
-                    raise DictError(f'Item "{match}" not found.')
+                    if error_on_unresolved:
+                        raise DictError(f'Item "{match}" not found.')
                 # Check that they are all strings if there are multiple matches
                 if len(res_items) > 1:
                     for res in res_items:
@@ -165,15 +170,18 @@ There is most likely a circular reference present""")
                 elif len(res_items) == 1:
                     if isinstance(res_items[0], dict) or isinstance(
                             res_items[0], list):
-                        item = self.resolve_item(res_items[0], regex)
+                        item = self.resolve_item(res_items[0], regex,
+                                                 error_on_unresolved)
                     elif isinstance(res_items[0], str):
                         item = regex.sub(res_items[0], item, 1)
                     else:
                         item = res_items[0]
         elif isinstance(item, list):
             for i, element in enumerate(item):
-                item[i] = self.resolve_item(element, regex)
+                item[i] = self.resolve_item(element, regex,
+                                            error_on_unresolved)
         elif isinstance(item, dict):
             for key, value in item.items():
-                item[key] = self.resolve_item(value, regex)
+                item[key] = self.resolve_item(value, regex,
+                                              error_on_unresolved)
         return item
