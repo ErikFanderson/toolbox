@@ -26,6 +26,11 @@ from jinja2 import Environment, StrictUndefined, PackageLoader
 # Imports - local source
 
 
+def get_rel_path(path: str, path_rel_to: str):
+    return os.path.relpath(str(Path(path).resolve()),
+                           str(Path(path_rel_to).resolve()))
+
+
 def remove_file_or_dir(path: str):
     """Removes/unlinks a file or directory"""
     for i in glob.glob(path):
