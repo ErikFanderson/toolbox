@@ -87,8 +87,9 @@ class JinjaTool(Tool):
         """
         with open(outfile, 'w') as fp:
             fp.write(self.render(template, **kwargs))
+        rel_outfile = os.path.relpath(outfile, self.get_db("internal.work_dir"))
         self.log(
-            f'Successfully rendered file "{Path(outfile).relative_to(self.get_db("internal.work_dir"))}"'
+            f'Successfully rendered file "{rel_outfile}"'
         )
 
     def render(self, template: str, **kwargs: Any):
