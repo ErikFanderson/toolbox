@@ -1,4 +1,5 @@
 jobs: map(include('job'))
+toolbox: include('tbox_dict')
 ---
 job:
   description: str(required=False)
@@ -6,3 +7,5 @@ job:
 task:
   tool: str()
   additional_configs: list(str(),required=False)
+tbox_dict:
+  export: map(str(), required=False)

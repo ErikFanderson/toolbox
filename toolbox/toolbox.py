@@ -86,7 +86,7 @@ class ToolBox(Database, HasLogFunction):
         self._load_dict({"internal.job_dir": self.make_build_dir()})
         self._load_dict({"internal.env": os.environ})
         self._load_dict({"internal.tools": {}})
-        self.restricted_ns = ["jobs", "user", "tools"]
+        self.restricted_ns = ["jobs", "user", "tools", "toolbox"]
         # Populate Database
         self.populate_database()
         atexit.register(self.exit)
@@ -269,6 +269,11 @@ class ToolBox(Database, HasLogFunction):
         for tool in list(self.get_db("internal.tools").keys()):
             tool_path = Path(self.get_db(f"internal.tools.{tool}.path"))
             sys.path.insert(1, str(tool_path.parent))
+        # Export environment variables
+        if "export" in self.get_db("toolbox"):
+            for k, v in self.get_db("toolbox.export").items():
+                os.environ[k] = v
+                self.log(f"Exported: {k} = {v}")
         # Run all tasks in job
         job = self.get_db(f'jobs.{self.get_db("internal.args.job")}')
         for task in job["tasks"]:
