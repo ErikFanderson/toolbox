@@ -105,7 +105,7 @@ class ToolBox(Database, HasLogFunction):
         # Check jobs - Validate jobs yaml
         self.validate_db(
             os.path.join(self.get_db('internal.home_dir'),
-                         'toolbox/schemas/jobs.yml'))
+                         'toolbox/schemas/toolbox.yml'))
 
     def log(self,
             msg: str,
