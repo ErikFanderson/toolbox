@@ -26,6 +26,14 @@ from jinja2 import Environment, StrictUndefined, PackageLoader
 # Imports - local source
 
 
+def print_divider(msg, length=40):
+    add_length = (length - len(msg) - 2)
+    post_length = add_length // 2
+    if add_length % 2 == 1:
+        post_length += 1
+    print(f"{add_length//2*'='} {msg} {post_length*'='}")
+
+
 def get_rel_path(path: str, path_rel_to: str):
     return os.path.relpath(str(Path(path).resolve()),
                            str(Path(path_rel_to).resolve()))
