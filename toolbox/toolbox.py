@@ -126,8 +126,9 @@ class ToolBox(Database, HasLogFunction):
         for config in configs:
             self.load_config(config)
             if print_info:
-                self.log(f'Loaded configuration file "{config}"',
-                         LogLevel.INFO)
+                self.log(
+                    f'Loaded configuration file "{get_rel_path(config, self.get_db("internal.work_dir"))}"',
+                    LogLevel.INFO)
         self._db.resolve(error_on_unresolved)
 
     def load_config(self, config: Union[str, Path]):
