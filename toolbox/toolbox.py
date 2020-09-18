@@ -86,7 +86,9 @@ class ToolBox(Database, HasLogFunction):
         self._load_dict({"internal.job_dir": self.make_build_dir()})
         self._load_dict({"internal.env": os.environ})
         self._load_dict({"internal.tools": {}})
-        self.restricted_ns = ["jobs", "user", "tools", "toolbox"]
+        self.restricted_ns = [
+            "jobs", "user", "tools", "toolbox", "files", "dirs"
+        ]
         # Populate Database
         self.populate_database()
         atexit.register(self.exit)
