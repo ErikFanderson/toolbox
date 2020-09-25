@@ -1,7 +1,9 @@
 jobs: map(include('job'))
 toolbox: include('tbox_dict')
-files: map(list(file()), required=False)
-dirs: map(list(dir()), required=False)
+filelists: map(list(file()), required=False)
+dirlists: map(list(dir()), required=False)
+files: map(file(), required=False)
+dirs: map(dir(), required=False)
 ---
 job:
   description: str(required=False)

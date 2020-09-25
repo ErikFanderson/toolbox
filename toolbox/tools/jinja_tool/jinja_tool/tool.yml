@@ -4,6 +4,10 @@ namespace: jinja
 
 # Dictionary containg all properties/attributes required by the tool
 properties:
+  included_namespaces:
+    description: "Namespaces to be included while rendering files"
+    default: [] 
+    schema: "list(str())"
   additional_templates:
     description: "Additional jinja2 rendering templates."
     default: []

@@ -102,4 +102,12 @@ class JinjaTool(Tool):
         uname = getpass.getuser()
         date = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
         template = self.env.get_template(Path(template).name)
-        return template.render(**kwargs, _uname=uname, _date=date)
+        included_ns = self.get_db(
+            self.get_namespace("JinjaTool") + ".included_namespaces")
+        included_ns_dict = {}
+        for ns in included_ns:
+            included_ns_dict[ns] = self.get_db(ns)
+        return template.render(**kwargs,
+                               **included_ns_dict,
+                               _uname=uname,
+                               _date=date)

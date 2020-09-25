@@ -87,7 +87,8 @@ class ToolBox(Database, HasLogFunction):
         self._load_dict({"internal.env": os.environ})
         self._load_dict({"internal.tools": {}})
         self.restricted_ns = [
-            "jobs", "user", "tools", "toolbox", "files", "dirs"
+            "jobs", "user", "tools", "toolbox", "files", "dirs", "filelists",
+            "dirlists"
         ]
         # Populate Database
         self.populate_database()
@@ -243,6 +244,9 @@ class ToolBox(Database, HasLogFunction):
                     f'Additional configuration file "{config}" successfully loaded.'
                 )
         self._db.resolve()
+        self.validate_db(
+            os.path.join(self.get_db('internal.home_dir'),
+                         'toolbox/schemas/toolbox.yml'))
         # Instantiate tool class
         tool_path = Path(self.get_db(f"internal.tools.{task.tool}.path"))
         tool_module = importlib.import_module(tool_path.stem)
