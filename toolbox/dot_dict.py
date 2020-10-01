@@ -11,6 +11,7 @@ from typing import Pattern
 import copy
 import sys
 import re
+from enum import Enum
 
 # Imports - 3rd party packages
 
@@ -22,8 +23,31 @@ class DictError(Exception):
     pass
 
 
+class Meta(Enum):
+    """Same logging levels used by python logging module (PRINT disables logging)"""
+    PROTECTED = 0 
+    APPEND = 1
+
+
 class DotDict(dict):
-    def set_via_dot_string(self, dot_str: str, value: Any) -> bool:
+    
+    def set_with_meta(self, dot_str: str, set_val: dict, key: str, value: Any, meta: Optional[Meta]):
+        """Does all the meta checks
+        Relies on the fact that set_val[key] is a portion of itself!
+        """
+        if meta == Meta.APPEND:
+            if isinstance(set_val[k], list):
+                if isinstance(value, list):
+                    set_val[key] = set_val[key] + value
+                else:
+                    raise DictError('APPEND meta attribute applied to non-list field "{dot_str}"')
+        elif meta == Meta.PROTECTED:
+            if k in set_val:
+                raise DictError('Cannot overwrite field "{dot_str}" with PROTECTED meta attribute')
+        else:
+            set_val[key] = value
+
+    def set_via_dot_string(self, dot_str: str, value: Any, meta: Optional[Meta] = None) -> bool:
         """Returns a modified dictionary accessed by a dot access_via_string
         WILL RUTHLESSLY REDEFINE VALUES! Need to allow for adding to dictionaries!
         :param dot_str Dot string such as key1.key2.key3
@@ -37,12 +61,12 @@ class DotDict(dict):
         for i, k in enumerate(keys):
             next_parent_val = set_val
             if len(keys) == (i + 1):
-                try:
-                    set_val[k] = value
-                except TypeError:
+                try: # Assume that set_val is dictionary
+                    self.set_with_meta(dot_str, set_val, k, value, meta)
+                except TypeError: # If not dict then make it one! 
                     parent_val[parent_k] = {}
                     set_val = parent_val[parent_k]
-                    set_val[k] = value
+                    self.set_with_meta(dot_str, set_val, k, value, meta)
             else:
                 try:
                     set_val = set_val[k]

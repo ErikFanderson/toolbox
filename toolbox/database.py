@@ -43,6 +43,9 @@ class Database:
         """
         db = copy.deepcopy(dictionary)
         db = DotDict(db).flatten()
+        # Load meta properties
+        meta = db.get("meta")
+        # Load regular properties
         for key, value in db.items():
             if self.internal and key.startswith(self.internal):
                 raise DatabaseError(
