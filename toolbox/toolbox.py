@@ -139,7 +139,9 @@ class ToolBox(Database, HasLogFunction):
         behavior needs to change in the future.
         """
         with open(config, 'r') as fp:
-            self.load_dict(yaml.load(fp, Loader=yaml.SafeLoader))
+            data = yaml.load(fp, Loader=yaml.SafeLoader)
+            if data:
+                self.load_dict(data)
 
     def load_tools(self):
         """Loads tools and schemas into database as well as default properties for tools"""

@@ -62,9 +62,9 @@ def unlink_missing_ok(dirname: Path) -> None:
         pass
 
 
-def check_files(fnames: List[str],
-                action: Optional[Callable[[str], Any]] = None
-                ) -> Optional[List[Path]]:
+def check_files(
+        fnames: List[str],
+        action: Optional[Callable[[str], Any]] = None) -> Optional[List[Path]]:
     """Checks to see if files exist"""
     if fnames:
         checked_fnames = [check_file(fname, action) for fname in fnames]
@@ -74,8 +74,9 @@ def check_files(fnames: List[str],
     return []
 
 
-def check_dirs(dirs: List[str], action: Optional[Callable[[str], Any]] = None
-               ) -> Optional[List[Path]]:
+def check_dirs(
+        dirs: List[str],
+        action: Optional[Callable[[str], Any]] = None) -> Optional[List[Path]]:
     """Checks to see if dir exists"""
     if dirs:
         checked_dirs = [check_dir(directory, action) for directory in dirs]
@@ -85,8 +86,9 @@ def check_dirs(dirs: List[str], action: Optional[Callable[[str], Any]] = None
     return []
 
 
-def check_file(fname: str, action: Optional[Callable[[str], Any]] = None
-               ) -> Optional[Path]:
+def check_file(
+        fname: str,
+        action: Optional[Callable[[str], Any]] = None) -> Optional[Path]:
     """Checks to see if file exists"""
     f = check_and_resolve(fname, files=True, dirs=False)
     if not f and action is not None:
@@ -216,7 +218,9 @@ class YamaleValidator:
             return str(err)
 
     @classmethod
-    def validate_dicts(cls, data: dict, schema: dict,
+    def validate_dicts(cls,
+                       data: dict,
+                       schema: dict,
                        includes: dict = None) -> Union[str, dict]:
         """Uses yamale to validate dictionary"""
         schema = Schema(schema, validators=cls.validators)

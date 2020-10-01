@@ -118,6 +118,7 @@ class Tool(HasLogFunction, ABC):
     @abstractmethod
     def steps(self) -> List[Callable[[], None]]:
         """Main method that will run the steps"""
+
     def get_command(self, job: str) -> str:
         """Uses command line command and replaces build job with job"""
         args = self.get_db("internal.args")

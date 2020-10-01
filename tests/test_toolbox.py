@@ -247,6 +247,23 @@ def test_tool_validate():
     tb.execute()
 
 
+def test_tool_validate_w_one_empty_config():
+    args = ToolBoxParams(build_dir='build',
+                         symlink=None,
+                         config=[
+                             f'{MOCK_DIR}/basic/tools.yml',
+                             f'{MOCK_DIR}/basic/config_a.yml',
+                             f'{MOCK_DIR}/basic/config_b.yml',
+                             f'{MOCK_DIR}/basic/config_empty.yml',
+                             f'{MOCK_DIR}/basic/job.yml'
+                         ],
+                         out_fname="toolbox.log",
+                         log_params=LoggerParams(LogLevel.DEBUG),
+                         job='example_job')
+    tb = ToolBox(args)
+    tb.execute()
+
+
 def test_tool_autoload():
     shutil.copy(f'{MOCK_DIR}/autoload/config_a.yml', "toolbox.yml")
     args = ToolBoxParams(build_dir='build',

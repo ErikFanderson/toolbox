@@ -50,6 +50,7 @@ class HasLogFunction(ABC):
             level: LogLevel = LogLevel.INFO,
             prefix: Optional[str] = None) -> None:
         """Required log function"""
+
     def check_file(self, fname: str) -> Optional[Path]:
         """Checks a single file"""
         log_fn = lambda f: self.log(f'"{f}" is not a valid file.', LogLevel.
