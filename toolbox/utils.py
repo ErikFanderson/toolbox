@@ -135,8 +135,8 @@ class BinaryDriver:
             self.__options.pop(-1)
 
     def add_option(self,
-                   value: Optional[str] = None,
-                   flag: Optional[str] = None):
+                   flag: Optional[str] = None,
+                   value: Optional[str] = None):
         """Adds an option to the options list"""
         self._add_option(flag)
         self._add_option(value)
