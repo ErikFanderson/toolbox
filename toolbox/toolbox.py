@@ -203,7 +203,7 @@ class ToolBox(Database, HasLogFunction):
 
     def make_build_dir(self):
         """Make build directory and symlink"""
-        date_str = datetime.now().strftime("%m-%d-%Y-%H:%M:%S")
+        date_str = datetime.now().strftime("%m-%d-%Y-%H-%M-%S")
         build_dir = Path(self.get_db("internal.args.build_dir")) / self.get_db(
             "internal.args.job") / date_str
         build_dir = build_dir.resolve()
