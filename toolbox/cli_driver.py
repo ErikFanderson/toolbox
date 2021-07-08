@@ -22,7 +22,7 @@ class ToolBoxCLIDriver:
         ''' Parse arguments for PyProjectCLIDriver CLI Driver'''
         parser = argparse.ArgumentParser(description="Runs jobs using tools")
         parser.add_argument('job',
-                            help='Specifies job (*.yml) to be executed.')
+                            help='Specifies job to be executed.')
         parser.add_argument(
             '-b',
             '--build-dir',
