@@ -70,14 +70,14 @@ class ToolBox(Database, HasLogFunction):
     def __init__(self, args: ToolBoxParams) -> None:
         """Inializes project manager with global namespace from args list"""
         super().__init__("internal")
+
         # Create logger and log function
         self._logger = Logger(args.log_params)
         self._log = self._logger.log
-        # Ensure that home directory is set
-        home_dir = check_dir(os.getenv('TOOLBOX_HOME'))
-        if home_dir is None:
-            raise ToolBoxError(
-                'TOOLBOX_HOME variable not set or incorrectly set.')
+
+        # Get "home" directory (i.e. pythonpath directory)
+        home_dir = Path(__file__).resolve().parent
+
         # Load internal.args and make build directory
         self._load_dict({"internal.command": ' '.join(sys.argv[1:])})
         self._load_dict({"internal.args": args.__dict__})
@@ -90,6 +90,7 @@ class ToolBox(Database, HasLogFunction):
             "jobs", "user", "tools", "toolbox", "files", "dirs", "filelists",
             "dirlists"
         ]
+
         # Populate Database
         self.populate_database()
         atexit.register(self.exit)
@@ -108,7 +109,7 @@ class ToolBox(Database, HasLogFunction):
         # Check jobs - Validate jobs yaml
         self.validate_db(
             os.path.join(self.get_db('internal.home_dir'),
-                         'toolbox/schemas/toolbox.yml'))
+                         'schemas/toolbox.yml'))
 
     def log(self,
             msg: str,
@@ -154,7 +155,7 @@ class ToolBox(Database, HasLogFunction):
             cfg = self.validate_yaml(
                 os.path.join(tp, "tool.yml"),
                 os.path.join(self.get_db('internal.home_dir'),
-                             'toolbox/schemas/tool.yml'))
+                             'schemas/tool.yml'))
             if "schema_includes" not in cfg:
                 cfg["schema_includes"] = None
             ts = ToolSchema(**cfg, path=str(tp))
@@ -248,7 +249,7 @@ class ToolBox(Database, HasLogFunction):
         self._db.resolve()
         self.validate_db(
             os.path.join(self.get_db('internal.home_dir'),
-                         'toolbox/schemas/toolbox.yml'))
+                         'schemas/toolbox.yml'))
         # Instantiate tool class
         tool_path = Path(self.get_db(f"internal.tools.{task.tool}.path"))
         tool_module = importlib.import_module(tool_path.stem)

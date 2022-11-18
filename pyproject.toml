@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workflow-toolbox"
+version = "0.0.0"
+authors = [
+    {name = "Erik Anderson", email = "erik.francis.anderson@gmail.com"},
+]
+description = "A Python workflow management program"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "yamale >= 4.0.4",
+    "PyYAML >= 6.0.0",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+toolbox-cli = "toolbox.cli_driver:main"

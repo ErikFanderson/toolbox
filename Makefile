@@ -1,34 +1,31 @@
 # Author: Erik Anderson
-# Date Created: 02/27/2020
 
-TESTS=tests
-SRC=toolbox
-DIRS = $(SRC) $(TESTS)
+default: help
 
-default: test
+# Show this help
+help:
+	@awk '/^#/{c=substr($$0,3);next}c&&/^[[:alpha:]][[:alnum:]_-]+:/{print substr($$1,1,index($$1,":")),c}1{c=0}' $(MAKEFILE_LIST) | column -s: -t
 
-# Lints pyproject directory recursively
-lint:
-	pylint $(DIRS) 
+# Builds python project for distribution
+build:
+	python3 -m build
 
-# Formats pyproject directory recursively
-format:
-	yapf -i -r $(DIRS) -e toolbox/Yamale 
-
-# Type checks pyproject directory recursively
-type:
-	mypy $(DIRS) 
+# Publishes built project to local pypi server
+publish:
+	python3 -m twine upload --verbose dist/*
+	#python3 -m twine upload --verbose --repository-url http://pypi.ayarlabs.com/ dist/*
 
 # Runs all tests in tests directory
 test:
-	pytest $(TESTS) -v
+	pytest -v tests
 	rm -rf build/ toolbox.yml
 
-# Runs ctags 
-tags:
-	ctags -R .
+# Export anaconda environment
+export:
+	conda env export --from-history | grep -v "prefix" > environment.new.yml
 
+# Clean up repo
 clean:
-	rm -rf build/ tags
+	rm -rf dist/ build/ *.log tags
 
-.PHONY: lint format type test clean
+.PHONY: default build test export clean

@@ -15,6 +15,7 @@ import getpass
 from datetime import datetime
 import glob
 import shutil
+import copy
 
 # Imports - 3rd party packages
 import yaml
@@ -212,7 +213,7 @@ class YamaleValidator:
             schema.add_include(includes)
         data = yamale.make_data(yaml_fname)
         try:
-            yamale.validate(schema, data)
+            yamale.validate(schema, data, strict=False)
             return data[0][0]
         except ValueError as err:
             return str(err)
@@ -223,13 +224,14 @@ class YamaleValidator:
                        schema: dict,
                        includes: dict = None) -> Union[str, dict]:
         """Uses yamale to validate dictionary"""
-        schema = Schema(schema, validators=cls.validators)
+        cp_includes = copy.deepcopy(includes)
+        fmt_schema = Schema(schema, validators=cls.validators)
         if includes is not None:
-            schema.add_include(includes)
-        data = [(data, '')]
+            fmt_schema.add_include(cp_includes)
+        fmt_data = [(data, '_dummy_path_')]
         try:
-            yamale.validate(schema, data)
-            return data[0][0]
+            yamale.validate(fmt_schema, fmt_data, strict=False)
+            return data
         except ValueError as err:
             return str(err)
 
@@ -244,7 +246,7 @@ class YamaleValidator:
             schema.add_include(includes)
         data = [(data, '')]
         try:
-            yamale.validate(schema, data)
+            yamale.validate(schema, data, strict=False)
             return data[0][0]
         except ValueError as err:
             return str(err)

@@ -16,8 +16,13 @@ from .toolbox import ToolBox, ToolBoxParams
 from .logger import LogLevel, LoggerParams
 
 
+def main():
+    ToolBoxCLIDriver().main()
+
+
 class ToolBoxCLIDriver:
     """Command line driver for pyproject invocation"""
+
     def parse_args(self) -> argparse.Namespace:
         ''' Parse arguments for PyProjectCLIDriver CLI Driver'''
         parser = argparse.ArgumentParser(description="Runs jobs using tools")
@@ -75,4 +80,4 @@ class ToolBoxCLIDriver:
 
 
 if __name__ == '__main__':
-    ToolBoxCLIDriver().main()
+    main()
